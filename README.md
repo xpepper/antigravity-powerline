@@ -1,5 +1,6 @@
 # antigravity-powerline
 
+[![Crates.io](https://img.shields.io/crates/v/antigravity-powerline.svg)](https://crates.io/crates/antigravity-powerline)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A blazingly fast, modular, and customizable powerline status line for Google Antigravity CLI (`agy`), written in Rust. Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline).
@@ -47,6 +48,12 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 ## Quick Start
 
 ### 1. Build and Install
+
+```bash
+cargo install antigravity-powerline
+```
+
+Or install from source:
 
 ```bash
 git clone https://github.com/xpepper/antigravity-powerline.git
