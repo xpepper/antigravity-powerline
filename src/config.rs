@@ -270,31 +270,28 @@ impl Config {
     }
 
     pub fn load_from_file_or_default(custom_path: Option<&Path>) -> Self {
-        if let Some(path) = custom_path {
-            if let Ok(content) = std::fs::read_to_string(path) {
-                if let Ok(cfg) = toml::from_str::<Config>(&content) {
-                    return cfg;
-                }
-            }
+        if let Some(path) = custom_path
+            && let Ok(content) = std::fs::read_to_string(path)
+            && let Ok(cfg) = toml::from_str::<Config>(&content)
+        {
+            return cfg;
         }
 
         if let Some(home) = dirs::home_dir() {
             let antigravity_path = home.join(".gemini").join("antigravity-powerline.toml");
-            if antigravity_path.exists() {
-                if let Ok(content) = std::fs::read_to_string(&antigravity_path) {
-                    if let Ok(cfg) = toml::from_str::<Config>(&content) {
-                        return cfg;
-                    }
-                }
+            if antigravity_path.exists()
+                && let Ok(content) = std::fs::read_to_string(&antigravity_path)
+                && let Ok(cfg) = toml::from_str::<Config>(&content)
+            {
+                return cfg;
             }
 
             let standard_path = home.join(".gemini").join("powerline.toml");
-            if standard_path.exists() {
-                if let Ok(content) = std::fs::read_to_string(&standard_path) {
-                    if let Ok(cfg) = toml::from_str::<Config>(&content) {
-                        return cfg;
-                    }
-                }
+            if standard_path.exists()
+                && let Ok(content) = std::fs::read_to_string(&standard_path)
+                && let Ok(cfg) = toml::from_str::<Config>(&content)
+            {
+                return cfg;
             }
         }
 

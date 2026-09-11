@@ -25,9 +25,11 @@ impl AntigravityInput {
     }
 
     pub fn resolved_cwd(&self) -> Option<&str> {
-        self.cwd
-            .as_deref()
-            .or_else(|| self.workspace.as_ref().and_then(|w| w.current_dir.as_deref()))
+        self.cwd.as_deref().or_else(|| {
+            self.workspace
+                .as_ref()
+                .and_then(|w| w.current_dir.as_deref())
+        })
     }
 }
 
@@ -78,23 +80,15 @@ pub struct ContextWindowInfo {
 
 impl ContextWindowInfo {
     pub fn active_tokens(&self) -> u64 {
-        if let Some(tokens) = self.current_tokens {
-            tokens
-        } else if let Some(tokens) = self.total_input_tokens {
-            tokens
-        } else {
-            0
-        }
+        self.current_tokens
+            .or(self.total_input_tokens)
+            .unwrap_or_default()
     }
 
     pub fn limit_tokens(&self) -> u64 {
-        if let Some(limit) = self.max_tokens {
-            limit
-        } else if let Some(limit) = self.context_window_size {
-            limit
-        } else {
-            0
-        }
+        self.max_tokens
+            .or(self.context_window_size)
+            .unwrap_or_default()
     }
 
     pub fn effective_used_percentage(&self) -> f64 {
