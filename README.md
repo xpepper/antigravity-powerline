@@ -10,9 +10,7 @@ Model, Git branch, open PR, context window usage, quota, prompt cache and sessio
 
 A single self-contained Rust binary with no runtime dependencies, rendered in under 5ms per refresh. Every segment is configurable and hides itself when its data is unavailable.
 
-```text
-󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │   #29  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
-```
+<img width="1346" height="39" alt="image" src="https://github.com/user-attachments/assets/bd963cdf-757a-4893-9bcc-8c0a7895c1fa" />
 
 Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline), its sibling status line for GitHub Copilot CLI.
 
