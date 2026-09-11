@@ -1,11 +1,20 @@
 # antigravity-powerline
 
-> Version 0.2.1
-
 [![Crates.io](https://img.shields.io/crates/v/antigravity-powerline.svg)](https://crates.io/crates/antigravity-powerline)
+[![CI](https://github.com/xpepper/antigravity-powerline/actions/workflows/ci.yml/badge.svg)](https://github.com/xpepper/antigravity-powerline/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A blazingly fast, modular, and customizable powerline status line for Google Antigravity CLI (`agy`), written in Rust. Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline).
+**A fast, beautiful status line for Google Antigravity CLI (`agy`).**
+
+Model, Git branch, open PR, context window usage, quota, prompt cache and session tokens — at a glance in your prompt, so you can stop typing `/usage` and `/context`.
+
+A single self-contained Rust binary with no runtime dependencies, rendered in under 5ms per refresh. Every segment is configurable and hides itself when its data is unavailable.
+
+```text
+󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │   #29  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
+```
+
+Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline), its sibling status line for GitHub Copilot CLI.
 
 ---
 
@@ -185,6 +194,12 @@ Options:
   -h, --help               Print help
   -V, --version            Print version
 ```
+
+---
+
+## Contributing
+
+Pull requests are welcome! The `main` branch is protected: every change goes through a PR, and CI runs `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` on each one. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 ---
 
