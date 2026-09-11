@@ -1,0 +1,36 @@
+# Implementation Plan: GitHub PR Segment
+
+- [x] 1. Core PR Data Models and GitHub Integration (`src/github.rs`)
+  - [x] Define `PullRequestInfo` struct (`number: u64`, `url: String`)
+  - [x] Define `PrCacheEntry` struct (`timestamp: u64`, `pr: Option<PullRequestInfo>`)
+  - [x] Implement `is_gh_available()` via fast PATH check
+  - [x] Implement cache file path resolver (based on repo directory + branch hash)
+  - [x] Implement atomic cache reading & writing
+  - [x] Implement background worker trigger with anti-thundering-herd throttle
+  - [x] Implement `fetch_and_write_pr_cache()` for worker execution
+  - [x] Unit tests for cache logic, serialization, and TTL handling
+- [x] 2. Theme & Palette Updates (`src/theme.rs`)
+  - [x] Add `pr` field to `Palette`
+  - [x] Define `pr` color for each theme (`github`, `nord`, `tokyo-night`, `plain`, `colorblind`)
+  - [x] Unit tests for theme palette `pr` field
+- [x] 3. Icons Updates (`src/icons.rs`)
+  - [x] Add `pr_icon` function supporting Plain (`PR`), Nerd (``), and Emoji (`🔀`)
+  - [x] Unit tests for `pr_icon`
+- [x] 4. Configuration Updates (`src/config.rs`)
+  - [x] Add `PrConfig` struct (`enabled`, `prefix`, `hyperlinks`, `cache_ttl_seconds`)
+  - [x] Add `pr: PrConfig` to `Config`
+  - [x] Update `default_segments()` to include `"pr"` right after `"git"`
+  - [x] Unit tests for `PrConfig` default values and TOML serialization
+- [x] 5. PR Segment Renderer (`src/segments/pr.rs` and `src/segments/mod.rs`)
+  - [x] Implement `render_pr_segment()`
+  - [x] Format with label/icon, yellow underline `#<number>`, and OSC 8 hyperlink
+  - [x] Unit tests for plain, nerd, emoji, hyperlink on/off, and missing PR cases
+- [x] 6. CLI & Main Integration (`src/cli.rs`, `src/main.rs`)
+  - [x] Add hidden CLI flags `--fetch-pr-cache` and `--repo-dir`
+  - [x] Dispatch background worker in `main()` if flags are passed
+  - [x] Wire `render_pr_segment` into the main segment evaluation loop
+  - [x] Integration verification
+- [x] 7. Documentation & Cleanliness (`README.md`)
+  - [x] Document `pr` segment in README table and configuration examples
+  - [x] Run `cargo fmt --check`, `cargo test`, `cargo clippy --all-targets -- -D warnings`
+  - [x] Commit incremental changes using Conventional Commits

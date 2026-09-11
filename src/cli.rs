@@ -24,4 +24,12 @@ pub struct Cli {
     /// Generate a default powerline.toml configuration file
     #[arg(long)]
     pub init: bool,
+
+    /// Internal worker flag to update PR cache in the background
+    #[arg(long, hide = true)]
+    pub fetch_pr_cache: Option<PathBuf>,
+
+    /// Internal worker flag indicating target repo directory for PR fetching
+    #[arg(long, hide = true)]
+    pub repo_dir: Option<PathBuf>,
 }

@@ -11,7 +11,7 @@ Welcome! This document provides architecture overviews, design constraints, and 
 ### Data Flow
 1. **Stdin Input**: Antigravity CLI passes a JSON payload via standard input on statusline refreshes (containing `model`, `cwd`, `context_window`, `quota`, `session_id`, `artifact_count`, etc.).
 2. **Configuration**: The tool loads `~/.gemini/powerline.toml` (or a path provided via `--config`), falling back to built-in defaults.
-3. **Segment Assembly**: Iterates through enabled segments (`model`, `git`, `tokens`, `quota`, `cache`, `total_tokens`, `artifacts`), formatting each.
+3. **Segment Assembly**: Iterates through enabled segments (`model`, `git`, `pr`, `tokens`, `quota`, `cache`, `total_tokens`, `artifacts`), formatting each.
 4. **Rendering**: The `renderer` applies the configured style (`minimal`, `powerline`, `capsule`, `plain`) and theme ANSI colors (`github`, `nord`, `tokyo-night`, `colorblind`, `plain`).
 5. **Stdout Output**: Emits the single-line formatted status line to standard output.
 

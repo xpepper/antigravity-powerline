@@ -95,6 +95,17 @@ pub fn artifacts_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
 }
 
+pub fn pr_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
+    if let Some(c) = custom {
+        return c;
+    }
+    match icon_set {
+        IconSet::Plain => "PR",
+        IconSet::Nerd => "",
+        IconSet::Emoji => "🔀",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,6 +119,7 @@ mod tests {
         assert_eq!(cache_icon(IconSet::Plain, None), "Cache:");
         assert_eq!(total_tokens_icon(IconSet::Plain, None), "Total:");
         assert_eq!(artifacts_icon(IconSet::Plain, None), "Artifacts:");
+        assert_eq!(pr_icon(IconSet::Plain, None), "PR");
     }
 
     #[test]
@@ -116,6 +128,7 @@ mod tests {
         assert_eq!(git_icon(IconSet::Nerd, None), "󰘬");
         assert_eq!(tokens_icon(IconSet::Nerd, None), "󰮚");
         assert_eq!(quota_icon(IconSet::Nerd, None), "󰔛");
+        assert_eq!(pr_icon(IconSet::Nerd, None), "");
     }
 
     #[test]
@@ -123,11 +136,13 @@ mod tests {
         assert_eq!(model_icon(IconSet::Emoji, None), "🤖");
         assert_eq!(git_icon(IconSet::Emoji, None), "🌿");
         assert_eq!(cache_icon(IconSet::Emoji, None), "⚡");
+        assert_eq!(pr_icon(IconSet::Emoji, None), "🔀");
     }
 
     #[test]
     fn test_custom_override() {
         assert_eq!(tokens_icon(IconSet::Plain, Some("Ctx:")), "Ctx:");
         assert_eq!(model_icon(IconSet::Nerd, Some("MDL")), "MDL");
+        assert_eq!(pr_icon(IconSet::Plain, Some("Pull:")), "Pull:");
     }
 }

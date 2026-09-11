@@ -73,6 +73,8 @@ pub struct Config {
     pub total_tokens: TotalTokensConfig,
     #[serde(default)]
     pub artifacts: ArtifactsConfig,
+    #[serde(default)]
+    pub pr: PrConfig,
 }
 
 impl Default for Config {
@@ -84,6 +86,7 @@ impl Default for Config {
             segments: default_segments(),
             model: ModelConfig::default(),
             git: GitConfig::default(),
+            pr: PrConfig::default(),
             tokens: TokensConfig::default(),
             quota: QuotaConfig::default(),
             cache: CacheConfig::default(),
@@ -101,6 +104,7 @@ fn default_segments() -> Vec<String> {
     vec![
         "model".to_string(),
         "git".to_string(),
+        "pr".to_string(),
         "tokens".to_string(),
         "quota".to_string(),
         "cache".to_string(),
@@ -263,6 +267,32 @@ impl Default for ArtifactsConfig {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrConfig {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    pub prefix: Option<String>,
+    #[serde(default = "default_true")]
+    pub hyperlinks: bool,
+    #[serde(default = "default_cache_ttl")]
+    pub cache_ttl_seconds: u64,
+}
+
+fn default_cache_ttl() -> u64 {
+    60
+}
+
+impl Default for PrConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            prefix: None,
+            hyperlinks: true,
+            cache_ttl_seconds: default_cache_ttl(),
+        }
+    }
+}
+
 impl Config {
     pub fn default_config_path() -> Option<PathBuf> {
         let gemini_dir = dirs::home_dir()?.join(".gemini");
@@ -313,9 +343,12 @@ mod tests {
         assert_eq!(cfg.style, Style::Minimal);
         assert_eq!(cfg.icon_set, IconSet::Plain);
         assert_eq!(cfg.theme, "colorblind");
-        assert_eq!(cfg.segments.len(), 6);
+        assert_eq!(cfg.segments.len(), 7);
         assert!(cfg.model.enabled);
         assert!(cfg.git.enabled);
+        assert!(cfg.pr.enabled);
+        assert!(cfg.pr.hyperlinks);
+        assert_eq!(cfg.pr.cache_ttl_seconds, 60);
     }
 
     #[test]

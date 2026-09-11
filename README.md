@@ -10,16 +10,16 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 
 ```text
 # Minimal Style (Plain Text)
-[Gemini 3.8 Flash (High)]  │  (main)  │  Tokens: 47k/1.0M (5%)  │  Quota: 5h: 96%  wk: 88%  │  Cache: 97%  │  Total: 52k
+[Gemini 3.8 Flash (High)]  │  (main)  │  PR #29  │  Tokens: 47k/1.0M (5%)  │  Quota: 5h: 96%  wk: 88%  │  Cache: 97%  │  Total: 52k
 
 # Minimal Style (Nerd Icons)
-󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
+󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │   #29  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
 
 # Capsule Style (Nerd Icons)
-󰚩 [Gemini 3.8 Flash (High)]  󰘬 (main)  󰮚 47k/1.0M (5%)  󰔛 5h: 96%  wk: 88%  󰘸 97%  󰓅 52k 
+󰚩 [Gemini 3.8 Flash (High)]  󰘬 (main)   #29  󰮚 47k/1.0M (5%)  󰔛 5h: 96%  wk: 88%  󰘸 97%  󰓅 52k 
 
 # Capsule Style (Emoji Icons)
-🤖 [Gemini 3.8 Flash (High)]  🌿 (main)  🪙 47k/1.0M (5%)  ⏳ 5h: 96%  wk: 88%  ⚡ 97%  📊 52k 
+🤖 [Gemini 3.8 Flash (High)]  🌿 (main)  🔀 #29  🪙 47k/1.0M (5%)  ⏳ 5h: 96%  wk: 88%  ⚡ 97%  📊 52k 
 
 # Context Alert Warning Threshold Triggered
 [Gemini 3.8 Flash (High)]  │  (main)  │  ⚠️ 145k/1.0M (14%)  │  Quota: 5h: 96%  wk: 88%  │  Cache: 97%  │  Total: 195k
@@ -32,6 +32,7 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 - ⚡️ **Sub-5ms Execution**: Ultra-lightweight compiled Rust binary; zero terminal lag or latency.
 - 🤖 **Model Tracking**: Displays active model name and effort level (e.g., `Gemini 3.8 Flash (High)`).
 - 🌿 **Instant Git Branch Detection**: Sub-millisecond direct repository `HEAD` resolution without process spawning overhead.
+- 🔀 **GitHub Pull Request Detection**: Displays clickable terminal hyperlink to the active branch's pull request (e.g., `PR #29`) via `gh`, cached with background refresh. Stays off automatically when `gh` is unavailable.
 - 🎯 **Context Window Monitoring**: Real-time context token usage vs model capacity, percentage used, and alert threshold warnings (`⚠️ `).
 - ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity.
 - ⚡ **Prompt Cache Hit Rate**: Tracks prompt cache efficiency and cache hit percentage in real time.
@@ -87,6 +88,7 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 |---|:---:|:---:|---|---|---|
 | `model` | `󰚩` | `🤖` | `Model:` | `[Gemini 3.8 Flash (High)]` | Active model display name. |
 | `git` | `󰘬` | `🌿` | `git:` | `(main)` | Active git branch name, resolved sub-millisecond. |
+| `pr` | `` | `🔀` | `PR` | `PR #29` | Active GitHub pull request number with clickable OSC 8 hyperlink to PR. Hidden when no PR exists. |
 | `tokens` | `󰮚` / `⚠️` | `🪙` / `⚠️` | `Tokens:` | `47k/1.0M (5%)` | Active context tokens vs model limit. Switches to `⚠️ ` when crossing alert threshold. |
 | `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96%  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity. |
 | `cache` | `󰘸` | `⚡` | `Cache:` | `97%` | Prompt cache hit rate. Automatically hidden when zero. |
@@ -106,6 +108,7 @@ theme = "nord"         # Options: "nord", "colorblind", "github", "tokyo-night",
 segments = [
     "model",
     "git",
+    "pr",
     "tokens",
     "quota",
     "cache",
@@ -120,6 +123,11 @@ brackets = true
 [git]
 enabled = true
 parentheses = true
+
+[pr]
+enabled = true
+hyperlinks = true
+cache_ttl_seconds = 60
 
 [tokens]
 enabled = true

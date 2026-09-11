@@ -15,6 +15,7 @@ pub struct Palette {
     pub cache: &'static str,
     pub artifacts: &'static str,
     pub total_tokens: &'static str,
+    pub pr: &'static str,
 }
 
 impl Palette {
@@ -36,6 +37,7 @@ impl Palette {
                 cache: "\x1b[36m",          // Cyan
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
+                pr: "\x1b[33m",             // Yellow
             },
             "nord" => Self {
                 reset: "\x1b[0m",
@@ -53,6 +55,7 @@ impl Palette {
                 cache: "\x1b[36m",          // Cyan
                 artifacts: "\x1b[33m",      // Yellow
                 total_tokens: "\x1b[34m",   // Blue
+                pr: "\x1b[33m",             // Yellow
             },
             "tokyo-night" => Self {
                 reset: "\x1b[0m",
@@ -70,6 +73,7 @@ impl Palette {
                 cache: "\x1b[96m",          // Bright Cyan
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[95m",   // Magenta
+                pr: "\x1b[93m",             // Yellow
             },
             "plain" => Self {
                 reset: "",
@@ -87,6 +91,7 @@ impl Palette {
                 cache: "",
                 artifacts: "",
                 total_tokens: "",
+                pr: "",
             },
             _ /* "colorblind" and fallback */ => Self {
                 reset: "\x1b[0m",
@@ -104,6 +109,7 @@ impl Palette {
                 cache: "\x1b[36m",          // Cyan
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
+                pr: "\x1b[93m",             // Yellow
             },
         }
     }
@@ -119,6 +125,7 @@ mod tests {
         assert_eq!(p.reset, "");
         assert_eq!(p.sep, "  |  ");
         assert_eq!(p.model, "");
+        assert_eq!(p.pr, "");
     }
 
     #[test]
@@ -127,6 +134,7 @@ mod tests {
         assert_eq!(p.reset, "\x1b[0m");
         assert_eq!(p.sep, "\x1b[90m  │  \x1b[0m");
         assert!(!p.tokens_alert.is_empty());
+        assert_eq!(p.pr, "\x1b[93m");
     }
 
     #[test]

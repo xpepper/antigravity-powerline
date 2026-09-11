@@ -5,6 +5,7 @@ use std::path::Path;
 mod cli;
 mod config;
 mod git;
+mod github;
 mod icons;
 mod input;
 mod renderer;
@@ -19,6 +20,7 @@ use segments::artifacts::render_artifacts_segment;
 use segments::cache::render_cache_segment;
 use segments::git::render_git_segment;
 use segments::model::render_model_segment;
+use segments::pr::render_pr_segment;
 use segments::quota::render_quota_segment;
 use segments::tokens::render_tokens_segment;
 use segments::total_tokens::render_total_tokens_segment;
@@ -34,6 +36,14 @@ fn read_stdin() -> String {
 
 fn main() {
     let cli = Cli::parse();
+
+    if let Some(cache_path) = cli.fetch_pr_cache {
+        let repo_dir = cli
+            .repo_dir
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+        github::fetch_and_write_pr_cache(&repo_dir, &cache_path);
+        return;
+    }
 
     if cli.init {
         let default_cfg = Config::default();
@@ -86,6 +96,21 @@ fn main() {
         .resolved_cwd()
         .and_then(|cwd| git::get_git_branch(Path::new(cwd)));
 
+    let gh_available = github::is_gh_available();
+    let pr_info = if config.pr.enabled
+        && config.segments.iter().any(|s| s == "pr")
+        && let (Some(cwd), Some(branch)) = (input.resolved_cwd(), git_branch.as_deref())
+    {
+        github::get_pr_info(
+            Path::new(cwd),
+            branch,
+            config.pr.cache_ttl_seconds,
+            gh_available,
+        )
+    } else {
+        None
+    };
+
     let mut rendered_segments = Vec::new();
 
     for seg in &config.segments {
@@ -107,6 +132,13 @@ fn main() {
                     config.icon_set,
                     &palette,
                 ) {
+                    rendered_segments.push(s);
+                }
+            }
+            "pr" => {
+                if let Some(s) =
+                    render_pr_segment(pr_info.as_ref(), &config.pr, config.icon_set, &palette)
+                {
                     rendered_segments.push(s);
                 }
             }
