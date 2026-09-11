@@ -6,7 +6,9 @@
 
 **A fast, beautiful status line for Google Antigravity CLI (`agy`).**
 
-Model, Git branch, open PR, context window usage, quota, prompt cache and session tokens — always visible in your prompt, so you can stop typing `/usage` and `/context`. One dependency-free Rust binary, rendered in under 5ms per refresh.
+Model, Git branch, open PR, context window usage, quota, prompt cache and session tokens — at a glance in your prompt, so you can stop typing `/usage` and `/context`.
+
+A single self-contained Rust binary with no runtime dependencies, rendered in under 5ms per refresh. Every segment is configurable and hides itself when its data is unavailable.
 
 ```text
 󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │   #29  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
