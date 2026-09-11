@@ -4,17 +4,24 @@ Thanks for your interest in improving `antigravity-powerline`!
 
 ## Development setup
 
-You need a stable Rust toolchain (install via [rustup](https://rustup.rs) if you don't have one):
+You need a stable Rust toolchain (install via [rustup](https://rustup.rs) if you don't have one). Start by forking the repository, then clone **your fork**:
 
 ```bash
-git clone https://github.com/xpepper/antigravity-powerline.git
+git clone https://github.com/<your-username>/antigravity-powerline.git
 cd antigravity-powerline
 cargo test
 ```
 
+To keep your fork up to date, add the upstream repository:
+
+```bash
+git remote add upstream https://github.com/xpepper/antigravity-powerline.git
+git fetch upstream
+```
+
 ## Pull request workflow
 
-1. Fork the repository and create a branch for your change.
+1. Create a branch on your fork for your change.
 2. Make your change, with tests for any new behavior.
 3. Run the local checks below — CI runs the exact same commands on every PR.
 4. Open a pull request against `main`. CI must pass before merging.
