@@ -37,9 +37,24 @@ pub fn render_quota_segment(
                 palette.quota
             };
 
+            let reset = if config.show_reset && config.reset_keys.contains(key) {
+                info.reset_in_seconds
+                    .map(|secs| {
+                        format!(
+                            " {}({}){}",
+                            palette.label,
+                            format_reset(secs),
+                            palette.reset
+                        )
+                    })
+                    .unwrap_or_default()
+            } else {
+                String::new()
+            };
+
             parts.push(format!(
-                "{}{}: {}{}%{}",
-                palette.label, label, color, pct, palette.reset
+                "{}{}: {}{}%{}{}",
+                palette.label, label, color, pct, palette.reset, reset
             ));
         }
     }
@@ -58,6 +73,26 @@ pub fn render_quota_segment(
             "{}{}{} {}",
             palette.label, icon, palette.reset, joined_parts
         ))
+    }
+}
+
+/// Formats seconds until quota reset as a compact human-readable duration.
+fn format_reset(secs: u64) -> String {
+    if secs < 60 {
+        return "<1m".to_string();
+    }
+
+    let total_minutes = secs / 60;
+    let days = total_minutes / (60 * 24);
+    let hours = (total_minutes / 60) % 24;
+    let minutes = total_minutes % 60;
+
+    if days > 0 {
+        format!("{}d {}h", days, hours)
+    } else if hours > 0 {
+        format!("{}h {}m", hours, minutes)
+    } else {
+        format!("{}m", minutes)
     }
 }
 
@@ -89,7 +124,37 @@ mod tests {
         let p = Palette::for_theme("plain");
 
         let rendered = render_quota_segment(&quotas, &cfg, IconSet::Plain, &p).unwrap();
-        assert_eq!(rendered, "Quota: 5h: 96%  wk: 88%");
+        assert_eq!(rendered, "Quota: 5h: 96% (4h 47m)  wk: 88%");
+    }
+
+    #[test]
+    fn test_render_quota_segment_without_reset() {
+        let mut quotas = HashMap::new();
+        quotas.insert(
+            "gemini-5h".to_string(),
+            QuotaInfo {
+                remaining_fraction: Some(0.24),
+                reset_time: None,
+                reset_in_seconds: Some(9360),
+            },
+        );
+
+        let cfg = QuotaConfig {
+            show_reset: false,
+            ..QuotaConfig::default()
+        };
+        let p = Palette::for_theme("plain");
+
+        let rendered = render_quota_segment(&quotas, &cfg, IconSet::Plain, &p).unwrap();
+        assert_eq!(rendered, "Quota: 5h: 24%");
+    }
+
+    #[test]
+    fn test_format_reset() {
+        assert_eq!(format_reset(30), "<1m");
+        assert_eq!(format_reset(9360), "2h 36m");
+        assert_eq!(format_reset(1800), "30m");
+        assert_eq!(format_reset(563846), "6d 12h");
     }
 
     #[test]

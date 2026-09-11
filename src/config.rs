@@ -194,10 +194,18 @@ pub struct QuotaConfig {
     pub prefix: Option<String>,
     #[serde(default = "default_preferred_quotas")]
     pub preferred_keys: Vec<String>,
+    #[serde(default = "default_true")]
+    pub show_reset: bool,
+    #[serde(default = "default_reset_keys")]
+    pub reset_keys: Vec<String>,
 }
 
 fn default_preferred_quotas() -> Vec<String> {
     vec!["gemini-5h".to_string(), "gemini-weekly".to_string()]
+}
+
+fn default_reset_keys() -> Vec<String> {
+    vec!["gemini-5h".to_string(), "3p-5h".to_string()]
 }
 
 impl Default for QuotaConfig {
@@ -206,6 +214,8 @@ impl Default for QuotaConfig {
             enabled: true,
             prefix: None,
             preferred_keys: default_preferred_quotas(),
+            show_reset: true,
+            reset_keys: default_reset_keys(),
         }
     }
 }

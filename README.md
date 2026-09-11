@@ -1,5 +1,7 @@
 # antigravity-powerline
 
+> Version 0.2.1
+
 [![Crates.io](https://img.shields.io/crates/v/antigravity-powerline.svg)](https://crates.io/crates/antigravity-powerline)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,7 +13,7 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 
 ```text
 # Minimal Style (Plain Text)
-[Gemini 3.8 Flash (High)]  │  (main)  │  PR #29  │  Tokens: 47k/1.0M (5%)  │  Quota: 5h: 96%  wk: 88%  │  Cache: 97%  │  Total: 52k
+[Gemini 3.8 Flash (High)]  │  (main)  │  PR #29  │  Tokens: 47k/1.0M (5%)  │  Quota: 5h: 96% (4h 47m)  wk: 88%  │  Cache: 97%  │  Total: 52k
 
 # Minimal Style (Nerd Icons)
 󰚩 [Gemini 3.8 Flash (High)]  │  󰘬 (main)  │   #29  │  󰮚 47k/1.0M (5%)  │  󰔛 5h: 96%  wk: 88%  │  󰘸 97%  │  󰓅 52k
@@ -23,7 +25,7 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 🤖 [Gemini 3.8 Flash (High)]  🌿 (main)  🔀 #29  🪙 47k/1.0M (5%)  ⏳ 5h: 96%  wk: 88%  ⚡ 97%  📊 52k 
 
 # Context Alert Warning Threshold Triggered
-[Gemini 3.8 Flash (High)]  │  (main)  │  ⚠️ 145k/1.0M (14%)  │  Quota: 5h: 96%  wk: 88%  │  Cache: 97%  │  Total: 195k
+[Gemini 3.8 Flash (High)]  │  (main)  │  ⚠️ 145k/1.0M (14%)  │  Quota: 5h: 96% (4h 47m)  wk: 88%  │  Cache: 97%  │  Total: 195k
 ```
 
 ---
@@ -35,7 +37,7 @@ A blazingly fast, modular, and customizable powerline status line for Google Ant
 - 🌿 **Instant Git Branch Detection**: Sub-millisecond direct repository `HEAD` resolution without process spawning overhead.
 - 🔀 **GitHub Pull Request Detection**: Displays clickable terminal hyperlink to the active branch's pull request (e.g., `PR #29`) via `gh`, cached with background refresh. Stays off automatically when `gh` is unavailable.
 - 🎯 **Context Window Monitoring**: Real-time context token usage vs model capacity, percentage used, and alert threshold warnings (`⚠️ `).
-- ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity.
+- ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity, plus the time left before the 5-hour window resets (e.g. `5h: 24% (2h 36m)`).
 - ⚡ **Prompt Cache Hit Rate**: Tracks prompt cache efficiency and cache hit percentage in real time.
 - 📊 **Total Session Tokens**: Displays cumulative turn throughput across the entire interactive session.
 - 📦 **Artifacts Counter**: Displays number of generated artifacts in the current workspace.
@@ -97,7 +99,7 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 | `git` | `󰘬` | `🌿` | `git:` | `(main)` | Active git branch name, resolved sub-millisecond. |
 | `pr` | `` | `🔀` | `PR` | `PR #29` | Active GitHub pull request number with clickable OSC 8 hyperlink to PR. Hidden when no PR exists. |
 | `tokens` | `󰮚` / `⚠️` | `🪙` / `⚠️` | `Tokens:` | `47k/1.0M (5%)` | Active context tokens vs model limit. Switches to `⚠️ ` when crossing alert threshold. |
-| `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96%  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity. |
+| `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96% (4h 47m)  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity, with time until the 5-hour window resets. |
 | `cache` | `󰘸` | `⚡` | `Cache:` | `97%` | Prompt cache hit rate. Automatically hidden when zero. |
 | `total_tokens` | `󰓅` | `📊` | `Total:` | `52k` | Total session token throughput. |
 | `artifacts` | `󰏗` | `📦` | `Artifacts:` | `2` | Number of artifacts created in the current conversation. |
@@ -144,9 +146,14 @@ alert_icon = "⚠️ "
 
 [quota]
 enabled = true
+show_reset = true
 preferred_keys = [
     "gemini-5h",
     "gemini-weekly",
+]
+reset_keys = [
+    "gemini-5h",
+    "3p-5h",
 ]
 
 [cache]
