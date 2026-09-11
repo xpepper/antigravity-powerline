@@ -21,15 +21,16 @@ pub fn render_total_tokens_segment(
 
     let formatted = format_tokens(Some(total));
     let icon = total_tokens_icon(icon_set, config.prefix.as_deref());
+    let icon_part = if icon.is_empty() {
+        String::new()
+    } else {
+        format!("{}{}{} ", palette.label, icon, palette.reset)
+    };
 
-    Some(
-        format!(
-            "{}{}{} {}{}{}",
-            palette.label, icon, palette.reset, palette.total_tokens, formatted, palette.reset
-        )
-        .trim_start()
-        .to_string(),
-    )
+    Some(format!(
+        "{}{}{}{}",
+        icon_part, palette.total_tokens, formatted, palette.reset
+    ))
 }
 
 #[cfg(test)]

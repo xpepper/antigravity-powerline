@@ -24,9 +24,15 @@ pub fn render_model_segment(
         name
     };
 
+    let icon_part = if icon.is_empty() {
+        String::new()
+    } else {
+        format!("{}{}{} ", palette.label, icon, palette.reset)
+    };
+
     Some(format!(
-        "{}{}{}{}{}",
-        palette.label, icon, palette.model, formatted, palette.reset
+        "{}{}{}{}",
+        icon_part, palette.model, formatted, palette.reset
     ))
 }
 

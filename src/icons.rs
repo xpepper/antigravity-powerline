@@ -24,8 +24,8 @@ pub fn model_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "",
-        IconSet::Nerd => "󰚩 ",
-        IconSet::Emoji => "🤖 ",
+        IconSet::Nerd => "󰚩",
+        IconSet::Emoji => "🤖",
     }
 }
 
@@ -35,8 +35,8 @@ pub fn git_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "",
-        IconSet::Nerd => "󰘬 ",
-        IconSet::Emoji => "🌿 ",
+        IconSet::Nerd => "󰘬",
+        IconSet::Emoji => "🌿",
     }
 }
 
@@ -46,8 +46,8 @@ pub fn tokens_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "Tokens:",
-        IconSet::Nerd => "󰮚 ",
-        IconSet::Emoji => "🪙 ",
+        IconSet::Nerd => "󰮚",
+        IconSet::Emoji => "🪙",
     }
 }
 
@@ -57,8 +57,8 @@ pub fn quota_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "Quota:",
-        IconSet::Nerd => "󰔛 ",
-        IconSet::Emoji => "⏳ ",
+        IconSet::Nerd => "󰔛",
+        IconSet::Emoji => "⏳",
     }
 }
 
@@ -68,8 +68,8 @@ pub fn cache_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "Cache:",
-        IconSet::Nerd => "󰘸 ",
-        IconSet::Emoji => "⚡ ",
+        IconSet::Nerd => "󰘸",
+        IconSet::Emoji => "⚡",
     }
 }
 
@@ -79,8 +79,8 @@ pub fn total_tokens_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "Total:",
-        IconSet::Nerd => "󰓅 ",
-        IconSet::Emoji => "📊 ",
+        IconSet::Nerd => "󰓅",
+        IconSet::Emoji => "📊",
     }
 }
 
@@ -90,8 +90,8 @@ pub fn artifacts_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
     match icon_set {
         IconSet::Plain => "Artifacts:",
-        IconSet::Nerd => "󰏗 ",
-        IconSet::Emoji => "📦 ",
+        IconSet::Nerd => "󰏗",
+        IconSet::Emoji => "📦",
     }
 }
 
@@ -112,17 +112,17 @@ mod tests {
 
     #[test]
     fn test_icon_set_nerd() {
-        assert_eq!(model_icon(IconSet::Nerd, None), "󰚩 ");
-        assert_eq!(git_icon(IconSet::Nerd, None), "󰘬 ");
-        assert_eq!(tokens_icon(IconSet::Nerd, None), "󰮚 ");
-        assert_eq!(quota_icon(IconSet::Nerd, None), "󰔛 ");
+        assert_eq!(model_icon(IconSet::Nerd, None), "󰚩");
+        assert_eq!(git_icon(IconSet::Nerd, None), "󰘬");
+        assert_eq!(tokens_icon(IconSet::Nerd, None), "󰮚");
+        assert_eq!(quota_icon(IconSet::Nerd, None), "󰔛");
     }
 
     #[test]
     fn test_icon_set_emoji() {
-        assert_eq!(model_icon(IconSet::Emoji, None), "🤖 ");
-        assert_eq!(git_icon(IconSet::Emoji, None), "🌿 ");
-        assert_eq!(cache_icon(IconSet::Emoji, None), "⚡ ");
+        assert_eq!(model_icon(IconSet::Emoji, None), "🤖");
+        assert_eq!(git_icon(IconSet::Emoji, None), "🌿");
+        assert_eq!(cache_icon(IconSet::Emoji, None), "⚡");
     }
 
     #[test]

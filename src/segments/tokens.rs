@@ -44,18 +44,24 @@ pub fn render_tokens_segment(
     let is_alert = curr_tokens > config.alert_threshold || pct >= 50;
     let is_warn = pct >= 30 && !is_alert;
 
-    let (alert_icon, curr_styled) = if is_alert {
+    let (icon_part, curr_styled) = if is_alert {
         (
-            config.alert_icon.as_str(),
+            config.alert_icon.clone(),
             format!("{}{}{}", palette.tokens_alert, tok_curr_str, r),
         )
-    } else if is_warn {
-        ("", format!("{}{}{}", palette.tokens_warn, tok_curr_str, r))
     } else {
-        (
-            "",
-            format!("{}{}{}", palette.tokens_normal, tok_curr_str, r),
-        )
+        let ic = tokens_icon(icon_set, config.prefix.as_deref());
+        let part = if ic.is_empty() {
+            String::new()
+        } else {
+            format!("{lbl}{ic}{r} ")
+        };
+        let color = if is_warn {
+            palette.tokens_warn
+        } else {
+            palette.tokens_normal
+        };
+        (part, format!("{}{}{}", color, tok_curr_str, r))
     };
 
     let max_styled = format!("{}{}{}", d, tok_max_str, r);
@@ -65,20 +71,10 @@ pub fn render_tokens_segment(
         String::new()
     };
 
-    let icon = if is_alert {
-        ""
-    } else {
-        tokens_icon(icon_set, config.prefix.as_deref())
-    };
-
-    Some(
-        format!(
-            "{}{}{} {}{}/{}{}",
-            lbl, icon, r, alert_icon, curr_styled, max_styled, pct_styled
-        )
-        .trim_start()
-        .to_string(),
-    )
+    Some(format!(
+        "{}{}/{}{}",
+        icon_part, curr_styled, max_styled, pct_styled
+    ))
 }
 
 #[cfg(test)]
@@ -122,7 +118,6 @@ mod tests {
         let p = Palette::for_theme("plain");
 
         let rendered = render_tokens_segment(&ctx, &cfg, IconSet::Plain, &p).unwrap();
-        assert!(rendered.contains("⚠️"));
-        assert!(rendered.contains("150k/200k (75%)"));
+        assert_eq!(rendered, "⚠️ 150k/200k (75%)");
     }
 }

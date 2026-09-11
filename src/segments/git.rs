@@ -24,9 +24,15 @@ pub fn render_git_segment(
         b.to_string()
     };
 
+    let icon_part = if icon.is_empty() {
+        String::new()
+    } else {
+        format!("{}{}{} ", palette.label, icon, palette.reset)
+    };
+
     Some(format!(
-        "{}{}{}{}{}",
-        palette.label, icon, palette.git, formatted, palette.reset
+        "{}{}{}{}",
+        icon_part, palette.git, formatted, palette.reset
     ))
 }
 

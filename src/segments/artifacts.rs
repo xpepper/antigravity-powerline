@@ -18,15 +18,16 @@ pub fn render_artifacts_segment(
     }
 
     let icon = artifacts_icon(icon_set, config.prefix.as_deref());
+    let icon_part = if icon.is_empty() {
+        String::new()
+    } else {
+        format!("{}{}{} ", palette.label, icon, palette.reset)
+    };
 
-    Some(
-        format!(
-            "{}{}{} {}{}{}",
-            palette.label, icon, palette.reset, palette.artifacts, count, palette.reset
-        )
-        .trim_start()
-        .to_string(),
-    )
+    Some(format!(
+        "{}{}{}{}",
+        icon_part, palette.artifacts, count, palette.reset
+    ))
 }
 
 #[cfg(test)]
@@ -54,6 +55,6 @@ mod tests {
         let cfg = ArtifactsConfig::default();
         let p = Palette::for_theme("plain");
         let rendered = render_artifacts_segment(Some(2), &cfg, IconSet::Nerd, &p).unwrap();
-        assert_eq!(rendered, "󰏗  2");
+        assert_eq!(rendered, "󰏗 2");
     }
 }
