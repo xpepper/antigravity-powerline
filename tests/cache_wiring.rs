@@ -31,8 +31,8 @@ fn refresh(sandbox: &Sandbox, conv: &str, input_tokens: u64, cache_read_tokens: 
         .to_string()
 }
 
-/// A warm Session, then a cold Step (168.8k sent, nothing read, as seen in
-/// a real Session), then a well-cached Step.
+/// A warm Session, then a cold Step (168.8k sent, nothing read from the
+/// cache), then a well-cached Step.
 fn replay_cold_step(sandbox: &Sandbox) -> (String, String) {
     refresh(sandbox, "conv-a", 9_000, 40_000);
     let after_miss = refresh(sandbox, "conv-a", 168_800, 0);

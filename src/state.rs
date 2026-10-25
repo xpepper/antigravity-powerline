@@ -87,7 +87,7 @@ pub fn session_file(kind: &str, session_id: &str) -> PathBuf {
 
 /// Loads the snapshot at `path` (if readable), lets `assess` derive the next
 /// one, and persists it only when it changed. Write failures are ignored: the
-/// status line must render even when the cache dir is read-only.
+/// status line must render even when the state directory is read-only.
 pub fn update_snapshot<T>(path: &Path, assess: impl FnOnce(Option<T>) -> T) -> T
 where
     T: Serialize + DeserializeOwned + PartialEq + Copy,

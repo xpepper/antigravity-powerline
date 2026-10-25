@@ -45,7 +45,7 @@ Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline),
 - 🔀 **GitHub Pull Request Detection**: Displays clickable terminal hyperlink to the active branch's pull request (e.g., `PR #29`) via `gh`, cached with background refresh. Stays off automatically when `gh` is unavailable.
 - 🎯 **Context Window Monitoring**: Real-time context token usage vs model capacity, percentage used, and alert threshold warnings (`⚠️ `).
 - ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity, plus the time left before the 5-hour window resets (e.g. `5h: 24% (2h 36m)`).
-- ⚡ **Prompt Cache Hit Rate, Trend & Misses**: Shows the latest call's cache hit rate, an arrow (`↑`/`↓`) when it is clearly above or below the session average, and a large cache miss (`· miss 169k`) for five minutes after it happens.
+- ⚡ **Prompt Cache Hit Rate, Trend & Misses**: Shows the latest Step's (model call's) cache hit rate, an arrow (`↑`/`↓`) when it is clearly above or below the session average, and a large cache miss (`· miss 169k`) for five minutes after it happens.
 - 📊 **Total Session Tokens**: Displays cumulative turn throughput across the entire interactive session.
 - 📦 **Artifacts Counter**: Displays number of generated artifacts in the current workspace.
 - 🎨 **Multiple Styles**: Choose from `minimal`, `powerline`, `capsule`, or `plain`.
@@ -107,7 +107,7 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 | `pr` | `` | `🔀` | `PR` | `PR #29` | Active GitHub pull request number (tinted by Review State) with clickable OSC 8 hyperlink and optional Review State / Unresolved Threads counts. Hidden when no PR exists. |
 | `tokens` | `󰮚` / `⚠️` | `🪙` / `⚠️` | `Tokens:` | `47k/1.0M (5%)` | Active context tokens vs model limit. Switches to `⚠️ ` when crossing alert threshold. |
 | `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96% (4h 47m)  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity, with time until the 5-hour window resets. |
-| `cache` | `󰘸` | `⚡` | `Cache:` | `97% ↓ · miss 169k` | Latest call's prompt cache hit rate, its trend against the session average, and any recent large miss. Hidden when zero unless a miss is showing. |
+| `cache` | `󰘸` | `⚡` | `Cache:` | `97% ↓ · miss 169k` | Latest Step's prompt cache hit rate, its trend against the session average, and any recent large miss. Hidden when zero unless a miss is showing. |
 | `total_tokens` | `󰓅` | `📊` | `Total:` | `52k` | Total session token throughput. |
 | `artifacts` | `󰏗` | `📦` | `Artifacts:` | `2` | Number of artifacts created in the current conversation. |
 
@@ -168,9 +168,9 @@ reset_keys = [
 [cache]
 enabled = true
 hide_when_zero = true
-show_trend = true            # ↑/↓ when the latest call beats or trails the session average by > 5 points
-show_last_miss = true        # show `· miss 169k` after a call with many uncached input tokens
-miss_min_tokens = 50000      # uncached input tokens that make a call a miss
+show_trend = true            # ↑/↓ when the latest Step beats or trails the session average by > 5 points
+show_last_miss = true        # show `· miss 169k` after a Step with many uncached input tokens
+miss_min_tokens = 50000      # uncached input tokens that make a Step a miss
 miss_visible_seconds = 300   # how long the miss stays on screen
 
 [total_tokens]

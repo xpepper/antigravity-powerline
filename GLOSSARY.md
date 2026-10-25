@@ -5,7 +5,7 @@ A status line for Google Antigravity CLI that keeps context usage, model quota, 
 ## Sessions and activity
 
 **Session**:
-One Antigravity CLI conversation, identified by its session id.
+One Antigravity CLI conversation, identified by its conversation id.
 _Avoid_: Chat, thread
 
 **Step**:
