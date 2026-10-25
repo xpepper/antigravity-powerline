@@ -49,7 +49,7 @@ Keep changes small and avoid unrelated refactors. Required CI checks must pass, 
 
 ### Optional: AI-assisted review
 
-Maintainers review pull requests with the [gem-pr-review](https://github.com/xpepper/pr-review-gemini) plugin. [`.github/gem-pr-review.md`](.github/gem-pr-review.md) holds this repository's review notes: the hot-path rules, and which files are the source of truth for API shapes.
+Maintainers review pull requests with the [gem-pr-review](https://github.com/xpepper/pr-review-gemini) plugin. [`.github/gem-pr-review.md`](.github/gem-pr-review.md) holds this repository's review notes: the hot-path rules, config compatibility contracts, and segment conventions.
 
 You do not need the plugin to contribute. The file is plain Markdown, so read it as a short checklist before opening a pull request; the CI checks above are the merge bar either way.
 
