@@ -196,18 +196,9 @@ pub fn get_pr_info(
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_cache_entry_roundtrip() {
+    fn assert_cache_entry_roundtrip(entry: PrCacheEntry) {
         let dir = tempfile::tempdir().unwrap();
         let temp_file = dir.path().join("cache.json");
-
-        let entry = PrCacheEntry {
-            timestamp: 1000,
-            pr: Some(PullRequestInfo {
-                number: 29,
-                url: "https://github.com/org/repo/pull/29".to_string(),
-            }),
-        };
 
         write_cache_entry(&temp_file, &entry).unwrap();
         let loaded = read_cache_entry(&temp_file).unwrap();
@@ -215,18 +206,22 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_entry_none_roundtrip() {
-        let dir = tempfile::tempdir().unwrap();
-        let temp_file = dir.path().join("cache_none.json");
+    fn test_cache_entry_roundtrip() {
+        assert_cache_entry_roundtrip(PrCacheEntry {
+            timestamp: 1000,
+            pr: Some(PullRequestInfo {
+                number: 29,
+                url: "https://github.com/org/repo/pull/29".to_string(),
+            }),
+        });
+    }
 
-        let entry = PrCacheEntry {
+    #[test]
+    fn test_cache_entry_none_roundtrip() {
+        assert_cache_entry_roundtrip(PrCacheEntry {
             timestamp: 12345,
             pr: None,
-        };
-
-        write_cache_entry(&temp_file, &entry).unwrap();
-        let loaded = read_cache_entry(&temp_file).unwrap();
-        assert_eq!(loaded, entry);
+        });
     }
 
     #[test]
