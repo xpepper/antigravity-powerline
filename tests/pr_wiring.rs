@@ -96,18 +96,15 @@ fn refresh(sandbox: &Sandbox, gh: &FakeGh) -> String {
 }
 
 /// Waits for the detached worker the first Refresh spawned: done once it
-/// has written the cache and released its claim lock.
+/// has written the cache (atomically, so the file appears complete).
 fn wait_for_worker(sandbox: &Sandbox) {
     let deadline = Instant::now() + Duration::from_secs(10);
     loop {
-        let files = sandbox.state_files("pr_");
-        let cached = files
+        let cached = sandbox
+            .state_files("pr_")
             .iter()
             .any(|p| p.extension().is_some_and(|e| e == "json"));
-        let claimed = files
-            .iter()
-            .any(|p| p.extension().is_some_and(|e| e == "lock"));
-        if cached && !claimed {
+        if cached {
             return;
         }
         assert!(
@@ -148,6 +145,21 @@ fn test_shows_review_state_and_unresolved_threads_after_the_fetch() {
     assert!(calls[1].contains("owner=org"), "{calls:?}");
     assert!(calls[1].contains("repo=repo"), "{calls:?}");
     assert!(calls[1].contains("number=29"), "{calls:?}");
+}
+
+#[test]
+fn test_a_refresh_right_after_the_fetch_does_not_fetch_again() {
+    let sandbox = Sandbox::new();
+    // A zero TTL makes every cache entry stale, so only the spawn throttle
+    // stands between each Refresh and a new worker.
+    sandbox.write_config("theme = \"plain\"\nsegments = [\"pr\"]\n\n[pr]\ncache_ttl_seconds = 0\n");
+    let gh = fake_gh(&sandbox, &pr_view("OPEN", "APPROVED"), None);
+
+    shown_after_fetch(&sandbox, &gh);
+    // Give a wrongly spawned second worker time to call `gh`.
+    std::thread::sleep(Duration::from_millis(500));
+
+    assert_eq!(gh.calls().len(), 1, "{:?}", gh.calls());
 }
 
 #[test]

@@ -374,8 +374,10 @@ pub fn fetch_and_write_pr_cache(repo_dir: &Path, cache_path: &Path, fetch_unreso
     });
     let entry = PrCacheEntry { timestamp: now, pr };
 
+    // The claim lock stays: its mtime is the spawn throttle, so removing it
+    // here would let a short TTL or a failed write start the next worker at
+    // once. It expires on its own and is reclaimed by `try_claim_spawn`.
     let _ = write_cache_entry(cache_path, &entry);
-    let _ = fs::remove_file(lock_file_path(cache_path));
 }
 
 /// Counts the PR's Unresolved Threads with `gh api graphql`, since
