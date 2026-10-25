@@ -23,7 +23,7 @@
   - [x] Add `pr_draft`, `pr_approved`, and `pr_changes_requested` colors to `Palette` (`src/theme.rs`) across all themes.
   - [x] Tint the `#<number>` hyperlink by `ReviewState` (`Approved`, `ChangesRequested`, `Draft`, or default `pr` color).
   - [x] Support `show_review_state` (spells out `· approved`, `· changes requested`, `· draft`; always on in `plain` theme).
-  - [x] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--fetch-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
+  - [x] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--show-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
   - [x] Extract `Sandbox` into `tests/common/mod.rs` and add `tests/pr_wiring.rs` to cover `main()` PR worker wiring.
 
 ## Phase 3: New Segments Inspired by Copilot CLI Native Footer

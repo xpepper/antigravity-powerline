@@ -42,7 +42,7 @@ fn main() {
         let repo_dir = cli
             .repo_dir
             .unwrap_or_else(|| std::path::PathBuf::from("."));
-        github::fetch_and_write_pr_cache(&repo_dir, &cache_path, cli.fetch_unresolved);
+        github::fetch_and_write_pr_cache(&repo_dir, &cache_path, cli.show_unresolved);
         return;
     }
 

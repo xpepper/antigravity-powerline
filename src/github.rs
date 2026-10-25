@@ -343,7 +343,7 @@ fn pr_coordinates(url: &str) -> Option<(&str, &str, u64)> {
 /// This blocks on a network call, so it must only ever run in the detached
 /// background worker process spawned by `spawn_background_fetch`, never on
 /// the status-line's hot path.
-pub fn fetch_and_write_pr_cache(repo_dir: &Path, cache_path: &Path, fetch_unresolved: bool) {
+pub fn fetch_and_write_pr_cache(repo_dir: &Path, cache_path: &Path, show_unresolved: bool) {
     let now = current_timestamp();
     let started = Instant::now();
 
@@ -371,7 +371,7 @@ pub fn fetch_and_write_pr_cache(repo_dir: &Path, cache_path: &Path, fetch_unreso
         .and_then(|out| parse_pr_view(&out.stdout));
     let pr = view.map(|view| {
         let mut pr = view.pr;
-        if view.open && fetch_unresolved {
+        if view.open && show_unresolved {
             // Both calls share one GH_TIMEOUT, so the worker as a whole
             // still ends before the throttle lets the next one start.
             let remaining = GH_TIMEOUT.saturating_sub(started.elapsed());
@@ -417,7 +417,7 @@ fn fetch_unresolved_threads(
         .flatten()
 }
 
-pub fn spawn_background_fetch(repo_dir: &Path, cache_path: &Path, fetch_unresolved: bool) {
+pub fn spawn_background_fetch(repo_dir: &Path, cache_path: &Path, show_unresolved: bool) {
     if let Ok(exe) = std::env::current_exe() {
         let mut command = Command::new(exe);
         command
@@ -425,8 +425,8 @@ pub fn spawn_background_fetch(repo_dir: &Path, cache_path: &Path, fetch_unresolv
             .arg(cache_path)
             .arg("--repo-dir")
             .arg(repo_dir);
-        if fetch_unresolved {
-            command.arg("--fetch-unresolved");
+        if show_unresolved {
+            command.arg("--show-unresolved");
         }
         let _ = command
             .stdin(Stdio::null())

@@ -35,5 +35,5 @@ pub struct Cli {
 
     /// Internal worker flag: also count the PR's Unresolved Threads
     #[arg(long, hide = true)]
-    pub fetch_unresolved: bool,
+    pub show_unresolved: bool,
 }
