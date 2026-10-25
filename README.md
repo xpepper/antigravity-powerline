@@ -145,7 +145,7 @@ enabled = true
 hyperlinks = true
 cache_ttl_seconds = 60
 show_review_state = false
-show_unresolved = false
+show_unresolved = false    # "· N unresolved"; "N+" or "?" past 100 threads (only the first 100 are counted)
 
 [tokens]
 enabled = true
