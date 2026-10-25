@@ -27,9 +27,8 @@ out="$root/target/mutants-diff"
 mkdir -p "$out" "$root/target/mutants-home"
 git diff "$base...HEAD" > "$out/pr.diff"
 
-# A throwaway HOME keeps mutants away from the real ~/.gemini and cache
-# dir. It sits under target/, outside the system temp dir, because tests
-# keep caches out of the temp dir. rustup must still find its toolchains.
+# A throwaway HOME keeps mutants away from the real ~/.gemini directory.
+# rustup and cargo must still find their real toolchains and cache.
 rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
 cargo_home="${CARGO_HOME:-$HOME/.cargo}"
 RUSTUP_HOME="$rustup_home" CARGO_HOME="$cargo_home" HOME="$root/target/mutants-home" \
