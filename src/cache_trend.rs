@@ -59,7 +59,9 @@ pub struct Snapshot {
     /// The Step this snapshot last counted. A Refresh reporting the same
     /// Step again (timer-driven) changes nothing.
     pub last_step: Step,
-    /// Prompt tokens (input plus cache reads) summed over the Steps seen.
+    /// Prompt tokens (input plus cache reads) summed over the Steps seen. A
+    /// Step that lands between two Refreshes is never seen, so the Session
+    /// average covers the Steps the status line saw.
     pub prompt_tokens: u64,
     /// Cache reads summed over the Steps seen.
     pub cache_read_tokens: u64,
@@ -74,18 +76,15 @@ pub struct Snapshot {
 /// against the Steps before it and whether it was a Cache Miss of at least
 /// `miss_min_tokens` (and at least one) uncached tokens.
 pub fn assess(prev: Option<Snapshot>, step: Step, now: u64, miss_min_tokens: u64) -> Snapshot {
-    let miss = (step.input_tokens > 0 && step.input_tokens >= miss_min_tokens).then_some(Miss {
-        tokens: step.input_tokens,
-        at: now,
-    });
-
+    // The first Step seen is the baseline: before it, nothing could have
+    // been read from the cache.
     let Some(prev) = prev else {
         return Snapshot {
             last_step: step,
             prompt_tokens: step.prompt_tokens(),
             cache_read_tokens: step.cache_read_tokens,
             trend: None,
-            last_miss: miss,
+            last_miss: None,
         };
     };
     if step == prev.last_step {
@@ -101,6 +100,11 @@ pub fn assess(prev: Option<Snapshot>, step: Step, now: u64, miss_min_tokens: u64
         _ => None,
     };
 
+    let miss = (step.input_tokens > 0 && step.input_tokens >= miss_min_tokens).then_some(Miss {
+        tokens: step.input_tokens,
+        at: now,
+    });
+
     Snapshot {
         last_step: step,
         prompt_tokens: prev.prompt_tokens + step.prompt_tokens(),
@@ -111,7 +115,8 @@ pub fn assess(prev: Option<Snapshot>, step: Step, now: u64, miss_min_tokens: u64
 }
 
 fn hit_rate(cache_read: u64, prompt: u64) -> Option<f64> {
-    (prompt > 0).then(|| cache_read as f64 / prompt as f64 * 100.0)
+    // Multiplying first keeps whole percentages exact at the tolerance.
+    (prompt > 0).then(|| cache_read as f64 * 100.0 / prompt as f64)
 }
 
 impl Snapshot {
@@ -258,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_large_uncached_step_is_recorded_as_miss() {
-        // A cold Step seen in a real Session: 168.8k sent, nothing read.
+        // A cold Step: 168.8k sent, nothing read from the cache.
         let next = assess_at_now(Some(at_60_pct(step(5_000, 1_000))), step(168_800, 0));
         assert_eq!(next.last_miss, miss(168_800, NOW));
     }
@@ -290,10 +295,11 @@ mod tests {
     }
 
     #[test]
-    fn test_large_first_step_seen_is_a_miss() {
-        // A Session resumed after its cache expired, with no snapshot left.
+    fn test_first_step_seen_is_not_a_miss() {
+        // Nothing can be read from the cache before a Session's first Step,
+        // such as one that opens with a large paste.
         let next = assess_at_now(None, step(155_135, 0));
-        assert_eq!(next.last_miss, miss(155_135, NOW));
+        assert_eq!(next.last_miss, None);
         assert_eq!(next.trend, None);
     }
 
