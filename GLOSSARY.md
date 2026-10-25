@@ -21,7 +21,7 @@ _Avoid_: Widget, field, module
 ## Pull request
 
 **Review State**:
-The verdict a pull request's reviews add up to: draft, approved or changes requested. A pull request with no deciding review has none.
+Where an open pull request stands: draft, or the verdict its reviews add up to (approved or changes requested). A merged or closed pull request, or one with no deciding review, has none.
 _Avoid_: Review status, PR status
 
 **Unresolved Thread**:
