@@ -4,11 +4,11 @@ Judgement calls the reviewer applies to every diff. Mechanical rules live in too
 
 ## Domain words
 
-Identifiers, comments and user-facing docs (README, `examples/powerline.toml`, help text) use the terms in [GLOSSARY.md](GLOSSARY.md) once created. A word on a term's _Avoid_ list is a finding, e.g. "open threads" for Unresolved Threads.
+Identifiers, comments and user-facing docs (`README.md`, help text) use the terms in [GLOSSARY.md](GLOSSARY.md) once created. A word on a term's _Avoid_ list is a finding.
 
 ## One setting, one name
 
-A setting that crosses a boundary (config key, hidden worker flag, function parameter) keeps one name and one polarity end to end: `show_unresolved` in config becomes `fetch_unresolved` in the worker and `--fetch-unresolved` on its command line.
+A setting that crosses a boundary (config key, CLI flag, function parameter) keeps one name and one polarity end to end: `hide_when_zero` in `powerline.toml` stays `hide_when_zero` on `CacheConfig`, `TotalTokensConfig`, and `ArtifactsConfig`, and `fetch_pr_cache` on `Cli` matches `--fetch-pr-cache` on the command line.
 
 ## Flag arguments
 
