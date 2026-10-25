@@ -399,6 +399,10 @@ mod tests {
         assert_eq!(cfg.pr.cache_ttl_seconds, 60);
         assert!(!cfg.pr.show_review_state);
         assert!(!cfg.pr.show_unresolved);
+        assert!(cfg.cache.show_trend);
+        assert!(cfg.cache.show_last_miss);
+        assert_eq!(cfg.cache.miss_min_tokens, 50_000);
+        assert_eq!(cfg.cache.miss_visible_seconds, 300);
         let omitted: Config = toml::from_str("[pr]\nhyperlinks = true\n").unwrap();
         assert!(!omitted.pr.show_review_state);
         assert!(!omitted.pr.show_unresolved);

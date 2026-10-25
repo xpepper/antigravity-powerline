@@ -7,4 +7,7 @@ exclude_re = [
     # Wall-clock Instant::now() cannot deterministically hit the exact
     # nanosecond deadline boundary.
     'src/github\.rs:.*replace < with <= in output_with_timeout',
+    # Equivalent: with no prompt tokens the rate is NaN, and NaN passes no
+    # trend comparison, so the Step still gets no trend.
+    'src/cache_trend\.rs:.*replace > with >= in hit_rate',
 ]
