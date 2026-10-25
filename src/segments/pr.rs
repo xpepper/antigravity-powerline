@@ -59,7 +59,7 @@ pub fn render_pr_segment(
     // segment's own colour.
     let number_colour = pr
         .review_state
-        .map_or(palette.pr, |state| review_colour(state, palette));
+        .map_or(palette.pr, |state| review_style(state, palette).1);
 
     let formatted_pr = if palette.reset.is_empty() {
         // Plain theme without escape codes
@@ -82,11 +82,12 @@ pub fn render_pr_segment(
     Some(rendered)
 }
 
-fn review_colour(state: ReviewState, palette: &Palette) -> &'static str {
+/// How a Review State reads when spelled out, and the colour it tints with.
+fn review_style(state: ReviewState, palette: &Palette) -> (&'static str, &'static str) {
     match state {
-        ReviewState::Draft => palette.pr_draft,
-        ReviewState::Approved => palette.pr_approved,
-        ReviewState::ChangesRequested => palette.pr_changes_requested,
+        ReviewState::Draft => ("draft", palette.pr_draft),
+        ReviewState::Approved => ("approved", palette.pr_approved),
+        ReviewState::ChangesRequested => ("changes requested", palette.pr_changes_requested),
     }
 }
 
@@ -101,12 +102,8 @@ fn review_parts(
     let mut parts = Vec::new();
     let spell_out = config.show_review_state || palette.reset.is_empty();
     if let Some(state) = pr.review_state.filter(|_| spell_out) {
-        let text = match state {
-            ReviewState::Draft => "draft",
-            ReviewState::Approved => "approved",
-            ReviewState::ChangesRequested => "changes requested",
-        };
-        parts.push((text.to_string(), review_colour(state, palette)));
+        let (text, colour) = review_style(state, palette);
+        parts.push((text.to_string(), colour));
     }
     if let Some(threads) = pr
         .unresolved_threads
