@@ -1,0 +1,7 @@
+# cargo-mutants configuration. Survivors listed here were triaged as not
+# worth a test; say why next to each one.
+exclude_re = [
+    # Starts a detached worker. Testing it needs timing-sensitive waits for a
+    # process nobody can join.
+    'src/github\.rs:.*replace spawn_background_fetch with \(\)',
+]

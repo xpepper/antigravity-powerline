@@ -62,41 +62,35 @@ mod tests {
 
     #[test]
     fn test_non_git_directory() {
-        let temp_dir = std::env::temp_dir().join("antigravity_test_nongit");
-        let _ = fs::create_dir_all(&temp_dir);
-        let branch = get_git_branch(&temp_dir);
-        let _ = fs::remove_dir_all(&temp_dir);
+        let temp_dir = tempfile::tempdir().unwrap();
+        let branch = get_git_branch(temp_dir.path());
         assert!(branch.is_none());
     }
 
     #[test]
     fn test_git_branch_resolution() {
-        let temp_dir = std::env::temp_dir().join("antigravity_test_git_repo");
-        let dot_git = temp_dir.join(".git");
-        let _ = fs::create_dir_all(&dot_git);
+        let temp_dir = tempfile::tempdir().unwrap();
+        let dot_git = temp_dir.path().join(".git");
+        fs::create_dir_all(&dot_git).unwrap();
 
         let mut head = File::create(dot_git.join("HEAD")).unwrap();
         head.write_all(b"ref: refs/heads/feature-awesome\n")
             .unwrap();
 
-        let branch = get_git_branch(&temp_dir);
+        let branch = get_git_branch(temp_dir.path());
         assert_eq!(branch.as_deref(), Some("feature-awesome"));
-
-        let _ = fs::remove_dir_all(&temp_dir);
     }
 
     #[test]
     fn test_detached_head_resolution() {
-        let temp_dir = std::env::temp_dir().join("antigravity_test_detached");
-        let dot_git = temp_dir.join(".git");
-        let _ = fs::create_dir_all(&dot_git);
+        let temp_dir = tempfile::tempdir().unwrap();
+        let dot_git = temp_dir.path().join(".git");
+        fs::create_dir_all(&dot_git).unwrap();
 
         let mut head = File::create(dot_git.join("HEAD")).unwrap();
         head.write_all(b"d58460183921abc456\n").unwrap();
 
-        let branch = get_git_branch(&temp_dir);
+        let branch = get_git_branch(temp_dir.path());
         assert_eq!(branch.as_deref(), Some("d584601"));
-
-        let _ = fs::remove_dir_all(&temp_dir);
     }
 }

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+status=0
+matches="$(git grep --full-name --no-color -n -E '/(Users|home)/' -- ':/')" || status=$?
+if (( status > 1 )); then
+  exit "$status"
+fi
+
+if [[ -n "$matches" ]]; then
+  printf 'Machine-specific paths are not allowed in tracked files:\n%s\n' "$matches" >&2
+  exit 1
+fi

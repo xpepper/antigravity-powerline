@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,34 +12,192 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
 jobs:
+  # A pull request that only touches Markdown skips the Rust jobs. Pushes to
+  # main always run everything.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for non-docs changes
+        id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT" = pull_request ] &&
+            git diff --name-only "origin/$BASE_REF...HEAD" | bash scripts/docs-only-change; then
+            echo "rust=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "rust=true" >> "$GITHUB_OUTPUT"
+          fi
+
   fmt:
-    name: fmt
+    name: Rustfmt
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: rustfmt
-      - run: cargo fmt --check
+
+      - name: Check code formatting
+        run: cargo fmt --all --check
 
   clippy:
-    name: clippy
+    name: Clippy
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --all-targets -- -D warnings
 
-  test:
-    name: test
+      - name: Run clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+  shellcheck:
+    name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test --all
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Lint shell scripts
+        run: shellcheck scripts/* tests/*.sh
+
+      - name: Check for machine-specific paths
+        run: bash scripts/check-machine-paths
+
+      - name: Test machine-path check
+        run: bash tests/test-check-machine-paths.sh
+
+      - name: Test docs-only change detection
+        run: bash tests/test-docs-only-change.sh
+
+      - name: Test mutants-diff script
+        run: bash tests/test-mutants-diff.sh
+
+  # Catch crates.io packaging problems before tagging a release.
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Dry-run cargo publish
+        run: cargo publish --dry-run
+
+  test:
+    name: Test (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run tests
+        run: cargo test --verbose
+
+      - name: Build release binary
+        run: cargo build --release --verbose
+
+  # Flags changed code that tests run but don't check. Advisory: it is not a
+  # required check, so surviving mutants show up in review without blocking.
+  mutants:
+    name: Mutants
+    runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.rust == 'true'
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install cargo-mutants and cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-mutants@27.1.0,cargo-nextest
+
+      # The same script developers run before pushing, so both agree.
+      - name: Run cargo-mutants on the diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          MUTANTS_JOBS: 2
+        run: scripts/mutants-diff "origin/$BASE_REF"
+
+      # A diff with no mutable Rust code writes no mutants.out.
+      - name: Summarize surviving mutants
+        if: always()
+        run: |
+          if [ -s mutants.out/missed.txt ]; then
+            {
+              echo '### Surviving mutants'
+              echo '```'
+              cat mutants.out/missed.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload mutants.out
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutants.out
+          path: mutants.out
+          if-no-files-found: ignore
+
+  # The single required check for main. It passes when every job it needs
+  # passed or was skipped, so a docs-only PR can merge. Add new required jobs
+  # to `needs`; Mutants stays out because it is advisory.
+  ci-ok:
+    name: CI ok
+    if: always()
+    needs: [changes, fmt, clippy, shellcheck, package, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "A required job ended with: $result"; exit 1 ;;
+            esac
+          done
