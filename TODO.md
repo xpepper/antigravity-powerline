@@ -63,7 +63,7 @@
 ## Phase 5: Quality, Documentation & Release Automation
 
 - [ ] **9. Domain Docs, Examples & Wiring Tests**
-  - *Reference*: `../copilot-powerline/GLOSSARY.md`, `../copilot-powerline/CODING_STANDARDS.md`, `../copilot-powerline/examples/powerline.toml`, `../copilot-powerline/tests/`
-  - [ ] Add `GLOSSARY.md` and `CODING_STANDARDS.md` adapted for Antigravity CLI domain concepts.
+  - *Reference*: `../copilot-powerline/GLOSSARY.md`, `../copilot-powerline/examples/powerline.toml`, `../copilot-powerline/tests/`
+  - [ ] Add `GLOSSARY.md` adapted for Antigravity CLI domain concepts (`CODING_STANDARDS.md` and `tests/repo_rules.rs` are already in place).
   - [ ] Add annotated `examples/powerline.toml` with a sync test against `Config::default()`.
   - [ ] Add `tests/*_wiring.rs` integration tests.
