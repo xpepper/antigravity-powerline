@@ -358,8 +358,15 @@ pub fn fetch_and_write_pr_cache(repo_dir: &Path, cache_path: &Path, fetch_unreso
             .current_dir(repo_dir),
         GH_TIMEOUT,
     );
+    // No answer at all (timed out, or `gh` could not start) says nothing
+    // about the PR, so the cached entry stays; a failing `gh` exit still
+    // records "no PR", or a branch without one would be fetched again and
+    // again.
+    let Some(output) = output else {
+        return;
+    };
 
-    let view = output
+    let view = Some(output)
         .filter(|out| out.status.success())
         .and_then(|out| parse_pr_view(&out.stdout));
     let pr = view.map(|view| {

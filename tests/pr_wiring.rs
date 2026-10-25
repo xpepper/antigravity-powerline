@@ -163,6 +163,30 @@ fn test_a_refresh_right_after_the_fetch_does_not_fetch_again() {
 }
 
 #[test]
+fn test_a_gh_that_never_answers_keeps_the_cached_pr() {
+    let sandbox = Sandbox::new();
+    sandbox.write_config("theme = \"plain\"\nsegments = [\"pr\"]\n\n[pr]\ncache_ttl_seconds = 0\n");
+    let gh = fake_gh(&sandbox, &pr_view("OPEN", "APPROVED"), None);
+    shown_after_fetch(&sandbox, &gh);
+
+    // `gh` is still on PATH but can no longer start, so the worker gets no
+    // answer; removing the claim lock stands in for the throttle expiring.
+    fs::set_permissions(gh.bin.join("gh"), fs::Permissions::from_mode(0o644)).unwrap();
+    for lock in sandbox
+        .state_files("pr_")
+        .iter()
+        .filter(|p| p.extension().is_some_and(|e| e == "lock"))
+    {
+        fs::remove_file(lock).unwrap();
+    }
+    refresh(&sandbox, &gh);
+    // Give the second worker time to finish.
+    std::thread::sleep(Duration::from_millis(500));
+
+    assert_eq!(refresh(&sandbox, &gh), "PR #29 · approved");
+}
+
+#[test]
 fn test_a_failed_thread_query_still_shows_the_review_state() {
     let sandbox = Sandbox::new();
     sandbox.write_config(REVIEWS_ON);
