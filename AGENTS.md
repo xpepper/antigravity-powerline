@@ -15,6 +15,9 @@ Welcome! This document provides architecture overviews, design constraints, and 
 4. **Rendering**: The `renderer` applies the configured style (`minimal`, `powerline`, `capsule`, `plain`) and theme ANSI colors (`github`, `nord`, `tokyo-night`, `colorblind`, `plain`).
 5. **Stdout Output**: Emits the single-line formatted status line to standard output.
 
+### Sibling Reference Repository (`copilot-powerline`)
+`antigravity-powerline` tracks the architecture, engineering conventions, and applicable features of [`xpepper/copilot-powerline`](https://github.com/xpepper/copilot-powerline) (typically cloned alongside this repo in `../copilot-powerline`). When porting features or patterns (such as `src/state.rs`, `src/github.rs`, `src/segments/pr.rs`, `src/cache_trend.rs`, `src/idle.rs`, `src/mode.rs`), consult `copilot-powerline` for the reference implementation and test coverage, and see [`TODO.md`](TODO.md) for the prioritized 5-phase roadmap.
+
 ---
 
 ## 2. Non-Negotiable Engineering Rules
