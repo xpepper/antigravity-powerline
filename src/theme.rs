@@ -13,6 +13,8 @@ pub struct Palette {
     pub quota_warn: &'static str,
     pub quota_alert: &'static str,
     pub cache: &'static str,
+    pub trend_up: &'static str,
+    pub trend_down: &'static str,
     pub artifacts: &'static str,
     pub total_tokens: &'static str,
     pub pr: &'static str,
@@ -38,6 +40,8 @@ impl Palette {
                 quota_warn: "\x1b[93m",     // Yellow
                 quota_alert: "\x1b[91m",    // Red
                 cache: "\x1b[36m",          // Cyan
+                trend_up: "\x1b[92m",   // Bright green
+                trend_down: "\x1b[91m", // Bright red
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
                 pr: "\x1b[33m",             // Yellow
@@ -59,6 +63,8 @@ impl Palette {
                 quota_warn: "\x1b[33m",     // Yellow
                 quota_alert: "\x1b[31m",    // Red
                 cache: "\x1b[36m",          // Cyan
+                trend_up: "\x1b[92m",   // Bright green
+                trend_down: "\x1b[91m", // Bright red
                 artifacts: "\x1b[33m",      // Yellow
                 total_tokens: "\x1b[34m",   // Blue
                 pr: "\x1b[33m",             // Yellow
@@ -80,6 +86,8 @@ impl Palette {
                 quota_warn: "\x1b[93m",     // Yellow
                 quota_alert: "\x1b[91m",    // Red
                 cache: "\x1b[96m",          // Bright Cyan
+                trend_up: "\x1b[92m",   // Bright green
+                trend_down: "\x1b[91m", // Bright red
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[95m",   // Magenta
                 pr: "\x1b[93m",             // Yellow
@@ -101,6 +109,8 @@ impl Palette {
                 quota_warn: "",
                 quota_alert: "",
                 cache: "",
+                trend_up: "",
+                trend_down: "",
                 artifacts: "",
                 total_tokens: "",
                 pr: "",
@@ -122,6 +132,8 @@ impl Palette {
                 quota_warn: "\x1b[33m",     // Yellow
                 quota_alert: "\x1b[1;31m",  // Red
                 cache: "\x1b[36m",          // Cyan
+                trend_up: "\x1b[94m",          // Bright blue
+                trend_down: "\x1b[38;5;208m",  // Orange
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
                 pr: "\x1b[93m",             // Yellow

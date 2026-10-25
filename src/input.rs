@@ -24,6 +24,16 @@ impl AntigravityInput {
         serde_json::from_str(json_str).unwrap_or_default()
     }
 
+    /// The id of the Session, for per-Session state. Antigravity documents
+    /// `session_id` as a compatibility copy of `conversation_id`, and sends
+    /// both empty before the first conversation starts.
+    pub fn session_key(&self) -> Option<&str> {
+        [&self.conversation_id, &self.session_id]
+            .into_iter()
+            .filter_map(|id| id.as_deref())
+            .find(|id| !id.is_empty())
+    }
+
     pub fn resolved_cwd(&self) -> Option<&str> {
         self.cwd.as_deref().or_else(|| {
             self.workspace
@@ -142,6 +152,33 @@ mod tests {
     fn test_parse_broken_json() {
         let input = AntigravityInput::from_json("{broken json...");
         assert!(input.session_id.is_none());
+    }
+
+    fn ids(session_id: Option<&str>, conversation_id: Option<&str>) -> AntigravityInput {
+        AntigravityInput {
+            session_id: session_id.map(String::from),
+            conversation_id: conversation_id.map(String::from),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_session_key_prefers_the_conversation_id() {
+        let input = ids(Some("legacy"), Some("conv-1"));
+        assert_eq!(input.session_key(), Some("conv-1"));
+    }
+
+    #[test]
+    fn test_session_key_falls_back_to_the_session_id() {
+        assert_eq!(ids(Some("sess-1"), None).session_key(), Some("sess-1"));
+        assert_eq!(ids(Some("sess-1"), Some("")).session_key(), Some("sess-1"));
+    }
+
+    #[test]
+    fn test_no_session_key_before_the_first_conversation() {
+        // Antigravity sends an empty id until a conversation starts.
+        assert_eq!(ids(Some(""), Some("")).session_key(), None);
+        assert_eq!(ids(None, None).session_key(), None);
     }
 
     #[test]

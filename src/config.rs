@@ -227,6 +227,29 @@ pub struct CacheConfig {
     pub prefix: Option<String>,
     #[serde(default = "default_true")]
     pub hide_when_zero: bool,
+    /// Color the hit rate and add an arrow (↑/↓) when the latest Step's
+    /// cache hit rate is clearly above or below the Session average.
+    #[serde(default = "default_true")]
+    pub show_trend: bool,
+    /// Keep the size of the latest large Cache Miss on screen for a while
+    /// (`· miss 169k`), which the per-Step rate and the arrow hide.
+    #[serde(default = "default_true")]
+    pub show_last_miss: bool,
+    /// A Step is a miss when at least this many (and at least one) of its
+    /// input tokens were not read from the cache.
+    #[serde(default = "default_cache_miss_min_tokens")]
+    pub miss_min_tokens: u64,
+    /// How long the latest miss stays on screen.
+    #[serde(default = "default_cache_miss_visible_seconds")]
+    pub miss_visible_seconds: u64,
+}
+
+fn default_cache_miss_min_tokens() -> u64 {
+    50_000
+}
+
+fn default_cache_miss_visible_seconds() -> u64 {
+    300
 }
 
 impl Default for CacheConfig {
@@ -235,6 +258,10 @@ impl Default for CacheConfig {
             enabled: true,
             prefix: None,
             hide_when_zero: true,
+            show_trend: true,
+            show_last_miss: true,
+            miss_min_tokens: default_cache_miss_min_tokens(),
+            miss_visible_seconds: default_cache_miss_visible_seconds(),
         }
     }
 }

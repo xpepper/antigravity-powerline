@@ -2,6 +2,7 @@ use clap::Parser;
 use std::io::{self, Read};
 use std::path::Path;
 
+mod cache_trend;
 mod cli;
 mod config;
 mod git;
@@ -18,7 +19,7 @@ use config::{Config, IconSet, Style};
 use input::AntigravityInput;
 use renderer::render_segments;
 use segments::artifacts::render_artifacts_segment;
-use segments::cache::render_cache_segment;
+use segments::cache::{self, render_cache_segment};
 use segments::git::render_git_segment;
 use segments::model::render_model_segment;
 use segments::pr::{self, render_pr_segment};
@@ -107,6 +108,24 @@ fn main() {
         None
     };
 
+    // `current_usage` is null until the first model response of a Session.
+    let cache_signals = if cache::needs_snapshot(&config.segments, &config.cache)
+        && let Some(id) = input.session_key()
+        && let Some(usage) = input.context_window.current_usage.as_ref()
+    {
+        cache_trend::check(
+            &cache_trend::snapshot_path(id),
+            usage.into(),
+            github::current_timestamp(),
+            cache_trend::MissRule {
+                min_tokens: config.cache.miss_min_tokens,
+                visible_seconds: config.cache.miss_visible_seconds,
+            },
+        )
+    } else {
+        cache_trend::Signals::default()
+    };
+
     let mut rendered_segments = Vec::new();
 
     for seg in &config.segments {
@@ -155,9 +174,10 @@ fn main() {
                     rendered_segments.push(s);
                 }
             }
-            "cache" => {
+            cache::NAME => {
                 if let Some(s) = render_cache_segment(
                     &input.context_window,
+                    cache_signals,
                     &config.cache,
                     config.icon_set,
                     &palette,
