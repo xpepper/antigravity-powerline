@@ -15,16 +15,19 @@
 
 ## Phase 2: Rich PR Segment (Port from `copilot-powerline`)
 
-- [ ] **2. PR Review State, Unresolved Threads & Hardened Fetching (`src/github.rs`, `src/segments/pr.rs`)**
+- [x] **2. PR Review State, Unresolved Threads & Hardened Fetching (`src/github.rs`, `src/segments/pr.rs`)**
   - *Reference*: `../copilot-powerline/src/github.rs`, `../copilot-powerline/src/segments/pr.rs`, `../copilot-powerline/src/theme.rs`, `../copilot-powerline/src/config.rs`, `../copilot-powerline/tests/pr_wiring.rs`
-  - [ ] Add `output_with_timeout` (`GH_TIMEOUT = 10s`) and atomic lock-file spawn claiming (`try_claim_spawn`) so background `gh` calls never hang or mask stale cache data.
-  - [ ] Validate PR URLs with `is_safe_github_url` before splicing into OSC 8 terminal escape sequences.
-  - [ ] Extend `gh pr view` query to fetch `number,url,state,isDraft,reviewDecision,latestReviews`.
-  - [ ] Add `pr_draft`, `pr_approved`, and `pr_changes_requested` colors to `Palette` (`src/theme.rs`) across all themes.
-  - [ ] Tint the `#<number>` hyperlink by `ReviewState` (`Approved`, `ChangesRequested`, `Draft`, or default `pr` color).
-  - [ ] Support `show_review_state` (spells out `· approved`, `· changes requested`, `· draft`; always on in `plain` theme).
-  - [ ] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--fetch-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
-  - [ ] Extract `Sandbox` into `tests/common/mod.rs` and add `tests/pr_wiring.rs` to cover `main()` PR worker wiring.
+  - [x] Add `output_with_timeout` (`GH_TIMEOUT = 10s`) and atomic lock-file spawn claiming (`try_claim_spawn`) so background `gh` calls never hang or mask stale cache data.
+  - [x] Validate PR URLs with `is_safe_github_url` before splicing into OSC 8 terminal escape sequences.
+  - [x] Extend `gh pr view` query to fetch `number,url,state,isDraft,reviewDecision,latestReviews`.
+  - [x] Add `pr_draft`, `pr_approved`, and `pr_changes_requested` colors to `Palette` (`src/theme.rs`) across all themes.
+  - [x] Tint the `#<number>` hyperlink by `ReviewState` (`Approved`, `ChangesRequested`, `Draft`, or default `pr` color).
+  - [x] Support `show_review_state` (spells out `· approved`, `· changes requested`, `· draft`; always on in `plain` theme).
+  - [x] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--show-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
+  - [x] Extract `Sandbox` into `tests/common/mod.rs` and add `tests/pr_wiring.rs` to cover `main()` PR worker wiring.
+
+- [ ] **2a. Decide How Merged / Closed PRs Render (`src/github.rs`, `src/segments/pr.rs`)**
+  - A merged or closed PR still renders as `PR #29` in the default `pr` colour; only its Review State is dropped (`parse_pr_view`). Decide whether to hide it, mark it (e.g. `· merged`), or keep it as is. `copilot-powerline` behaves the same today. Raised in PR #5 review.
 
 ## Phase 3: New Segments Inspired by Copilot CLI Native Footer
 

@@ -32,4 +32,8 @@ pub struct Cli {
     /// Internal worker flag indicating target repo directory for PR fetching
     #[arg(long, hide = true)]
     pub repo_dir: Option<PathBuf>,
+
+    /// Internal worker flag: also count the PR's Unresolved Threads
+    #[arg(long, hide = true)]
+    pub show_unresolved: bool,
 }

@@ -16,6 +16,9 @@ pub struct Palette {
     pub artifacts: &'static str,
     pub total_tokens: &'static str,
     pub pr: &'static str,
+    pub pr_approved: &'static str,
+    pub pr_changes_requested: &'static str,
+    pub pr_draft: &'static str,
 }
 
 impl Palette {
@@ -38,6 +41,9 @@ impl Palette {
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
                 pr: "\x1b[33m",             // Yellow
+                pr_approved: "\x1b[92m",    // Bright green
+                pr_changes_requested: "\x1b[1;31m", // Bold red
+                pr_draft: "\x1b[90m",       // Grey
             },
             "nord" => Self {
                 reset: "\x1b[0m",
@@ -56,6 +62,9 @@ impl Palette {
                 artifacts: "\x1b[33m",      // Yellow
                 total_tokens: "\x1b[34m",   // Blue
                 pr: "\x1b[33m",             // Yellow
+                pr_approved: "\x1b[92m",    // Bright green
+                pr_changes_requested: "\x1b[1;31m", // Bold red
+                pr_draft: "\x1b[90m",       // Grey
             },
             "tokyo-night" => Self {
                 reset: "\x1b[0m",
@@ -74,6 +83,9 @@ impl Palette {
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[95m",   // Magenta
                 pr: "\x1b[93m",             // Yellow
+                pr_approved: "\x1b[92m",    // Bright green
+                pr_changes_requested: "\x1b[1;31m", // Bold red
+                pr_draft: "\x1b[90m",       // Grey
             },
             "plain" => Self {
                 reset: "",
@@ -92,6 +104,9 @@ impl Palette {
                 artifacts: "",
                 total_tokens: "",
                 pr: "",
+                pr_approved: "",
+                pr_changes_requested: "",
+                pr_draft: "",
             },
             _ /* "colorblind" and fallback */ => Self {
                 reset: "\x1b[0m",
@@ -110,8 +125,18 @@ impl Palette {
                 artifacts: "\x1b[93m",      // Yellow
                 total_tokens: "\x1b[94m",   // Blue
                 pr: "\x1b[93m",             // Yellow
+                // Blue/orange instead of green/red, distinguishable with
+                // red-green color blindness.
+                pr_approved: "\x1b[94m",            // Bright blue
+                pr_changes_requested: "\x1b[38;5;208m", // Orange
+                pr_draft: "\x1b[90m",               // Grey
             },
         }
+    }
+
+    /// True for a palette with no colours, which emits no escape codes.
+    pub fn is_plain(&self) -> bool {
+        self.reset.is_empty()
     }
 }
 
@@ -129,6 +154,14 @@ mod tests {
     }
 
     #[test]
+    fn test_only_the_plain_palette_is_plain() {
+        assert!(Palette::for_theme("plain").is_plain());
+        for theme in ["github", "nord", "tokyo-night", "colorblind"] {
+            assert!(!Palette::for_theme(theme).is_plain(), "{theme}");
+        }
+    }
+
+    #[test]
     fn test_colorblind_palette() {
         let p = Palette::for_theme("colorblind");
         assert_eq!(p.reset, "\x1b[0m");
@@ -141,5 +174,30 @@ mod tests {
     fn test_theme_fallback() {
         let p = Palette::for_theme("nonexistent-theme");
         assert_eq!(p.reset, "\x1b[0m");
+    }
+
+    #[test]
+    fn test_review_state_colours_are_blue_and_orange_for_colorblind() {
+        let cb = Palette::for_theme("colorblind");
+        assert_eq!(cb.pr_approved, "\x1b[94m");
+        assert_eq!(cb.pr_changes_requested, "\x1b[38;5;208m");
+
+        let gh = Palette::for_theme("github");
+        assert_eq!(gh.pr_approved, "\x1b[92m");
+        assert_eq!(gh.pr_changes_requested, "\x1b[1;31m");
+        assert_eq!(gh.pr_draft, "\x1b[90m");
+
+        // Only the colorblind palette (the fallback) is blue/orange.
+        for theme in ["nord", "tokyo-night"] {
+            let palette = Palette::for_theme(theme);
+            assert_eq!(palette.pr_approved, "\x1b[92m", "{theme}");
+            assert_eq!(palette.pr_changes_requested, "\x1b[1;31m", "{theme}");
+            assert_eq!(palette.pr_draft, "\x1b[90m", "{theme}");
+        }
+
+        let plain = Palette::for_theme("plain");
+        assert_eq!(plain.pr_approved, "");
+        assert_eq!(plain.pr_changes_requested, "");
+        assert_eq!(plain.pr_draft, "");
     }
 }

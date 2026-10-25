@@ -104,7 +104,7 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 |---|:---:|:---:|---|---|---|
 | `model` | `󰚩` | `🤖` | `Model:` | `[Gemini 3.8 Flash (High)]` | Active model display name. |
 | `git` | `󰘬` | `🌿` | `git:` | `(main)` | Active git branch name, resolved sub-millisecond. |
-| `pr` | `` | `🔀` | `PR` | `PR #29` | Active GitHub pull request number with clickable OSC 8 hyperlink to PR. Hidden when no PR exists. |
+| `pr` | `` | `🔀` | `PR` | `PR #29` | Active GitHub pull request number (tinted by Review State) with clickable OSC 8 hyperlink and optional Review State / Unresolved Threads counts. Hidden when no PR exists. |
 | `tokens` | `󰮚` / `⚠️` | `🪙` / `⚠️` | `Tokens:` | `47k/1.0M (5%)` | Active context tokens vs model limit. Switches to `⚠️ ` when crossing alert threshold. |
 | `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96% (4h 47m)  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity, with time until the 5-hour window resets. |
 | `cache` | `󰘸` | `⚡` | `Cache:` | `97%` | Prompt cache hit rate. Automatically hidden when zero. |
@@ -144,6 +144,8 @@ parentheses = true
 enabled = true
 hyperlinks = true
 cache_ttl_seconds = 60
+show_review_state = false
+show_unresolved = false    # "· N unresolved"; "N+" or "?" past 100 threads (only the first 100 are counted)
 
 [tokens]
 enabled = true
