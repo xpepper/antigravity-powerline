@@ -4,4 +4,7 @@ exclude_re = [
     # Starts a detached worker. Testing it needs timing-sensitive waits for a
     # process nobody can join.
     'src/github\.rs:.*replace spawn_background_fetch with \(\)',
+    # Wall-clock Instant::now() cannot deterministically hit the exact
+    # nanosecond deadline boundary.
+    'src/github\.rs:.*replace < with <= in output_with_timeout',
 ]

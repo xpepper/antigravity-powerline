@@ -286,6 +286,15 @@ pub struct PrConfig {
     pub hyperlinks: bool,
     #[serde(default = "default_cache_ttl")]
     pub cache_ttl_seconds: u64,
+    /// Spell out the Review State (draft, approved, changes requested)
+    /// after the number. The number is tinted by it either way, and a
+    /// palette without colours always spells it out.
+    #[serde(default)]
+    pub show_review_state: bool,
+    /// Show the count of Unresolved Threads. Off (the default) also skips
+    /// the extra `gh api graphql` call that counts them.
+    #[serde(default)]
+    pub show_unresolved: bool,
 }
 
 fn default_cache_ttl() -> u64 {
@@ -299,6 +308,8 @@ impl Default for PrConfig {
             prefix: None,
             hyperlinks: true,
             cache_ttl_seconds: default_cache_ttl(),
+            show_review_state: false,
+            show_unresolved: false,
         }
     }
 }
@@ -359,6 +370,11 @@ mod tests {
         assert!(cfg.pr.enabled);
         assert!(cfg.pr.hyperlinks);
         assert_eq!(cfg.pr.cache_ttl_seconds, 60);
+        assert!(!cfg.pr.show_review_state);
+        assert!(!cfg.pr.show_unresolved);
+        let omitted: Config = toml::from_str("[pr]\nhyperlinks = true\n").unwrap();
+        assert!(!omitted.pr.show_review_state);
+        assert!(!omitted.pr.show_unresolved);
     }
 
     #[test]

@@ -21,7 +21,7 @@ use segments::artifacts::render_artifacts_segment;
 use segments::cache::render_cache_segment;
 use segments::git::render_git_segment;
 use segments::model::render_model_segment;
-use segments::pr::render_pr_segment;
+use segments::pr::{self, render_pr_segment};
 use segments::quota::render_quota_segment;
 use segments::tokens::render_tokens_segment;
 use segments::total_tokens::render_total_tokens_segment;
@@ -42,7 +42,7 @@ fn main() {
         let repo_dir = cli
             .repo_dir
             .unwrap_or_else(|| std::path::PathBuf::from("."));
-        github::fetch_and_write_pr_cache(&repo_dir, &cache_path);
+        github::fetch_and_write_pr_cache(&repo_dir, &cache_path, cli.fetch_unresolved);
         return;
     }
 
@@ -99,11 +99,10 @@ fn main() {
     let git_branch = repo_root.as_deref().and_then(git::get_git_branch);
 
     let gh_available = github::is_gh_available();
-    let pr_info = if config.pr.enabled
-        && config.segments.iter().any(|s| s == "pr")
+    let pr_info = if pr::is_visible(&config.segments, &config.pr)
         && let (Some(repo_dir), Some(branch)) = (repo_root.as_deref(), git_branch.as_deref())
     {
-        github::get_pr_info(repo_dir, branch, config.pr.cache_ttl_seconds, gh_available)
+        github::get_pr_info(repo_dir, branch, &config.pr, gh_available)
     } else {
         None
     };
@@ -132,7 +131,7 @@ fn main() {
                     rendered_segments.push(s);
                 }
             }
-            "pr" => {
+            pr::NAME => {
                 if let Some(s) =
                     render_pr_segment(pr_info.as_ref(), &config.pr, config.icon_set, &palette)
                 {

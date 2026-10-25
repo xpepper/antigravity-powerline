@@ -3,78 +3,17 @@
 //! nested repository subdirectory.
 #![cfg(unix)]
 
+mod common;
+
+use common::Sandbox;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::{self, File};
 use std::hash::{Hash, Hasher};
-use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use tempfile::TempDir;
 
 const DAY: Duration = Duration::from_secs(24 * 60 * 60);
-
-struct Sandbox {
-    home: TempDir,
-}
-
-impl Sandbox {
-    fn new() -> Self {
-        Self {
-            home: tempfile::tempdir().unwrap(),
-        }
-    }
-
-    fn home(&self) -> &Path {
-        self.home.path()
-    }
-
-    fn state_dir(&self) -> PathBuf {
-        let cache = if cfg!(target_os = "macos") {
-            self.home().join("Library/Caches")
-        } else {
-            self.home().join(".cache")
-        };
-        cache.join("antigravity-powerline")
-    }
-
-    fn write_config(&self, toml: &str) {
-        let dir = self.home().join(".gemini");
-        fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join("powerline.toml"), toml).unwrap();
-    }
-
-    fn refresh_with_env(&self, payload: &str, args: &[&str], envs: &[(&str, &Path)]) -> String {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_antigravity-powerline"))
-            .args(args)
-            .envs(envs.iter().copied())
-            .env("HOME", self.home())
-            .env_remove("XDG_CACHE_HOME")
-            .current_dir(self.home())
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
-        child
-            .stdin
-            .take()
-            .unwrap()
-            .write_all(payload.as_bytes())
-            .unwrap();
-        let output = child.wait_with_output().unwrap();
-        assert!(
-            output.status.success(),
-            "refresh failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        String::from_utf8(output.stdout)
-            .unwrap()
-            .trim_end()
-            .to_string()
-    }
-}
 
 fn touch(dir: &Path, name: &str, age: Duration) -> PathBuf {
     let path = dir.join(name);
@@ -94,7 +33,7 @@ fn test_refresh_prunes_stale_state_files_and_keeps_the_rest() {
     let recent = touch(&state, "pr_fedcba9876543210.json", DAY);
     let mode = touch(&state, "mode", 40 * DAY);
 
-    sandbox.refresh_with_env(r#"{"session_id":"wiring"}"#, &[], &[]);
+    sandbox.refresh(r#"{"session_id":"wiring"}"#, &[]);
 
     assert!(!stale.exists());
     assert!(recent.exists() && mode.exists());
@@ -107,10 +46,10 @@ fn test_refresh_scans_at_most_once_a_day() {
     let state = sandbox.state_dir();
     fs::create_dir_all(&state).unwrap();
 
-    sandbox.refresh_with_env(r#"{"session_id":"wiring"}"#, &[], &[]);
+    sandbox.refresh(r#"{"session_id":"wiring"}"#, &[]);
     assert!(state.join("last_prune").exists());
     let stale = touch(&state, "cache_0123456789abcdef.json", 40 * DAY);
-    sandbox.refresh_with_env(r#"{"session_id":"wiring"}"#, &[], &[]);
+    sandbox.refresh(r#"{"session_id":"wiring"}"#, &[]);
 
     assert!(stale.exists());
 }
@@ -118,7 +57,7 @@ fn test_refresh_scans_at_most_once_a_day() {
 #[test]
 fn test_refresh_resolves_pr_cache_by_repo_root_from_nested_subdirectory() {
     let sandbox = Sandbox::new();
-    sandbox.write_config("theme = \"plain\"\nsegments = [\"pr\"]\n");
+    sandbox.write_config("theme = \"plain\"\nsegments = [\"git\", \"pr\"]\n");
 
     let repo_root = sandbox.home().join("repo");
     let nested = repo_root.join("crates").join("sub");
@@ -158,5 +97,5 @@ fn test_refresh_resolves_pr_cache_by_repo_root_from_nested_subdirectory() {
         &[("PATH", &bin)],
     );
 
-    assert_eq!(line, "PR #42");
+    assert_eq!(line, "(feat-root)  |  PR #42");
 }

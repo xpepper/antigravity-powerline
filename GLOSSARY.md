@@ -17,3 +17,13 @@ _Avoid_: Tick, update, render
 **Segment**:
 One item of the status line, such as Context Window or Pull Request, that the user can enable, order and configure.
 _Avoid_: Widget, field, module
+
+## Pull request
+
+**Review State**:
+The verdict a pull request's reviews add up to: draft, approved or changes requested. A pull request with no deciding review has none.
+_Avoid_: Review status, PR status
+
+**Unresolved Thread**:
+A review conversation on a pull request not yet marked resolved, including ones on code that has since changed.
+_Avoid_: Open comment, pending review
