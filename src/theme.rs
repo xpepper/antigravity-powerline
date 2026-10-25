@@ -133,6 +133,11 @@ impl Palette {
             },
         }
     }
+
+    /// True for a palette with no colours, which emits no escape codes.
+    pub fn is_plain(&self) -> bool {
+        self.reset.is_empty()
+    }
 }
 
 #[cfg(test)]
@@ -146,6 +151,14 @@ mod tests {
         assert_eq!(p.sep, "  |  ");
         assert_eq!(p.model, "");
         assert_eq!(p.pr, "");
+    }
+
+    #[test]
+    fn test_only_the_plain_palette_is_plain() {
+        assert!(Palette::for_theme("plain").is_plain());
+        for theme in ["github", "nord", "tokyo-night", "colorblind"] {
+            assert!(!Palette::for_theme(theme).is_plain(), "{theme}");
+        }
     }
 
     #[test]

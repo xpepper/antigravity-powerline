@@ -61,7 +61,7 @@ pub fn render_pr_segment(
         .review_state
         .map_or(palette.pr, |state| review_style(state, palette).1);
 
-    let formatted_pr = if palette.reset.is_empty() {
+    let formatted_pr = if palette.is_plain() {
         // Plain theme without escape codes
         pr_text
     } else if config.hyperlinks && is_safe_github_url(&pr.url) {
@@ -100,7 +100,7 @@ fn review_parts(
     palette: &Palette,
 ) -> Vec<(String, &'static str)> {
     let mut parts = Vec::new();
-    let spell_out = config.show_review_state || palette.reset.is_empty();
+    let spell_out = config.show_review_state || palette.is_plain();
     if let Some(state) = pr.review_state.filter(|_| spell_out) {
         let (text, colour) = review_style(state, palette);
         parts.push((text.to_string(), colour));
