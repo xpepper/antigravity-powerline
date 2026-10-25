@@ -1,49 +1,58 @@
-# Contributing
+# Contributing to antigravity-powerline
 
-Thanks for your interest in improving `antigravity-powerline`!
+Thanks for improving `antigravity-powerline`. This project is a Rust status line for Google Antigravity CLI (`agy`), so changes should stay focused, fast, and compatible with the data the CLI provides.
 
-## Development setup
+## Getting started
 
-You need a stable Rust toolchain (install via [rustup](https://rustup.rs) if you don't have one). Start by forking the repository, then clone **your fork**:
+Install the current stable [Rust toolchain](https://www.rust-lang.org/tools/install), then clone the repository and run the test suite:
 
 ```bash
-git clone https://github.com/<your-username>/antigravity-powerline.git
+git clone https://github.com/xpepper/antigravity-powerline.git
 cd antigravity-powerline
-cargo test
+cargo test --verbose
 ```
 
-To keep your fork up to date, add the upstream repository:
+The project is a single Cargo package. Source code is in `src/`, status-line segments are in `src/segments/`, and user documentation is in `README.md`.
+
+## Before opening a pull request
+
+Run the same checks that CI runs:
 
 ```bash
-git remote add upstream https://github.com/xpepper/antigravity-powerline.git
-git fetch upstream
-```
-
-## Pull request workflow
-
-1. Create a branch on your fork for your change.
-2. Make your change, with tests for any new behavior.
-3. Run the local checks below — CI runs the exact same commands on every PR.
-4. Open a pull request against `main`. CI must pass before merging.
-
-The `main` branch is protected: all changes land through pull requests, with `fmt`, `clippy`, and `test` as required status checks.
-
-## Local checks
-
-```bash
-cargo fmt --check
-cargo test
+cargo fmt --all --check
 cargo clippy --all-targets -- -D warnings
+cargo test --verbose
+cargo build --release --verbose
+scripts/mutants-diff
 ```
 
-## Engineering constraints
+CI also checks shell scripts and enforces the mechanical repository rules (such as portable paths). See [the CI workflow](.github/workflows/ci.yml) for the complete checks and commands.
 
-See [AGENTS.md](AGENTS.md) for the full guidelines. The essentials:
+Documentation-only changes do not need Rust checks, but please confirm Markdown renders correctly and that commands and claims match the current implementation.
 
-- **Sub-15ms execution.** The binary runs inside an interactive status line loop: no heavy dependencies, no network calls, fast filesystem checks only.
-- **Defensive stdin parsing.** Payloads from Antigravity CLI vary and may be empty: use `Option<T>` / `#[serde(default)]` and fall back gracefully, never panic.
-- **Zero compiler warnings.** `cargo check` and `cargo test` must compile warning-free.
+## Scope and design
 
-## Commit messages
+Bug fixes, documentation improvements, and focused usability changes are welcome. For a new status-line segment, open an issue first and explain:
 
-Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): ...`, `fix(scope): ...`, `perf(scope): ...`, `test(scope): ...`, `style: ...`, `ci: ...`, `docs: ...`, `chore: ...`.
+- the user problem it solves;
+- which optional Antigravity CLI input fields provide the data;
+- how it stays lightweight in a status-line refresh; and
+- the configuration, tests, and README updates it needs.
+
+Segments must handle missing input gracefully and avoid blocking the status line. See `AGENTS.md` for the project architecture and engineering constraints.
+
+## Pull-request workflow
+
+`main` is protected and changes merge through pull requests. Create a focused branch from current `main`, link the related issue when applicable, and use the pull-request template to describe motivation, behavior, verification, and documentation impact.
+
+Keep changes small and avoid unrelated refactors. Required CI checks must pass, and review conversations must be resolved before merging.
+
+### Optional: AI-assisted review
+
+Maintainers review pull requests with the [gem-pr-review](https://github.com/xpepper/pr-review-gemini) plugin. [`.github/gem-pr-review.md`](.github/gem-pr-review.md) holds this repository's review notes: the hot-path rules, and which files are the source of truth for API shapes.
+
+You do not need the plugin to contribute. The file is plain Markdown, so read it as a short checklist before opening a pull request; the CI checks above are the merge bar either way.
+
+## Reporting issues
+
+Use the bug-report template for reproducible problems and the feature-request template for proposals. Include only information needed to investigate; do not attach session data, credentials, or other sensitive information.

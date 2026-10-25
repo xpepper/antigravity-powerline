@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Reads changed paths, one per line, on stdin. Exits 0 when every path is a
+# Markdown file, so CI can skip the Rust jobs. An empty list exits 1: if the
+# diff could not be computed, every check runs.
+set -euo pipefail
+
+found=0
+while IFS= read -r changed || [ -n "$changed" ]; do
+  [ -n "$changed" ] || continue
+  case "$changed" in
+    *.md) found=1 ;;
+    *) exit 1 ;;
+  esac
+done
+
+[ "$found" -eq 1 ]

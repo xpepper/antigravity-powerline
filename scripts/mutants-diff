@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Runs cargo-mutants on the lines this branch changes. The CI Mutants job
+# runs this same script, so a local run and CI agree. Usage:
+#   scripts/mutants-diff [base]   # base defaults to origin/main
+# MUTANTS_JOBS sets the parallel jobs (default 4). Exits non-zero when a
+# mutant survives or cargo-mutants fails (timeout, broken baseline).
+set -euo pipefail
+
+base="${1:-origin/main}"
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+# The diff is taken from commits, so uncommitted edits and new files would
+# go untested.
+if [ -n "$(git status --porcelain)" ]; then
+  echo "mutants-diff: commit or stash your changes first; only committed changes are diffed" >&2
+  exit 1
+fi
+
+# A stale copy of a remote base would put the base's own newer commits in
+# the diff.
+case "$base" in
+  origin/*) git fetch --quiet origin "${base#origin/}" ;;
+esac
+
+out="$root/target/mutants-diff"
+mkdir -p "$out" "$root/target/mutants-home"
+git diff "$base...HEAD" > "$out/pr.diff"
+
+# A throwaway HOME keeps mutants away from the real ~/.gemini and cache
+# dir. It sits under target/, outside the system temp dir, because tests
+# keep caches out of the temp dir. rustup must still find its toolchains.
+rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
+cargo_home="${CARGO_HOME:-$HOME/.cargo}"
+RUSTUP_HOME="$rustup_home" CARGO_HOME="$cargo_home" HOME="$root/target/mutants-home" \
+  "${CARGO:-cargo}" mutants --in-diff "$out/pr.diff" --test-tool nextest \
+  --no-shuffle -j "${MUTANTS_JOBS:-4}"

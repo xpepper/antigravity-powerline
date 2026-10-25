@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+status=0
+matches="$(git grep --full-name --no-color -n -E '/(Users|home)/' -- ':/' ':(top,exclude)AGENTS.md')" || status=$?
+if (( status > 1 )); then
+  exit "$status"
+fi
+
+# dist generates this fixed runner path; the rest of the workflow is still checked.
+violations="$(printf '%s\n' "$matches" | sed -E '/^\.github\/workflows\/release\.yml:[0-9]+:[[:space:]]+export PATH="\/home\/linuxbrew\/\.linuxbrew\/bin:[$]PATH"$/d')"
+if [[ -n "$violations" ]]; then
+  printf 'Machine-specific paths are not allowed in tracked files:\n%s\n' "$violations" >&2
+  exit 1
+fi
