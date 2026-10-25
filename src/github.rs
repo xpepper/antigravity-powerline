@@ -104,8 +104,8 @@ pub fn output_with_timeout(command: &mut Command, timeout: Duration) -> Option<O
     let deadline = Instant::now() + timeout;
     let status = loop {
         match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() < deadline => {
+            Ok(Some(status)) if reader.is_finished() => break status,
+            Ok(_) if Instant::now() < deadline => {
                 std::thread::sleep(Duration::from_millis(25));
             }
             _ => {
@@ -716,6 +716,16 @@ mod tests {
         let started = std::time::Instant::now();
         let mut command = Command::new("sleep");
         command.arg("2");
+        assert!(output_with_timeout(&mut command, std::time::Duration::from_millis(100)).is_none());
+        assert!(started.elapsed() < std::time::Duration::from_secs(1));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_output_with_timeout_times_out_when_a_descendant_holds_stdout() {
+        let started = std::time::Instant::now();
+        let mut command = Command::new("sh");
+        command.args(["-c", "sleep 2 &"]);
         assert!(output_with_timeout(&mut command, std::time::Duration::from_millis(100)).is_none());
         assert!(started.elapsed() < std::time::Duration::from_secs(1));
     }
