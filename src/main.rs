@@ -103,12 +103,7 @@ fn main() {
         && config.segments.iter().any(|s| s == "pr")
         && let (Some(repo_dir), Some(branch)) = (repo_root.as_deref(), git_branch.as_deref())
     {
-        github::get_pr_info(
-            repo_dir,
-            branch,
-            config.pr.cache_ttl_seconds,
-            gh_available,
-        )
+        github::get_pr_info(repo_dir, branch, config.pr.cache_ttl_seconds, gh_available)
     } else {
         None
     };
