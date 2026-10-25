@@ -198,11 +198,8 @@ mod tests {
 
     #[test]
     fn test_cache_entry_roundtrip() {
-        let temp_file = std::env::temp_dir().join(format!(
-            "test_cache_{}_{}.json",
-            std::process::id(),
-            current_timestamp()
-        ));
+        let dir = tempfile::tempdir().unwrap();
+        let temp_file = dir.path().join("cache.json");
 
         let entry = PrCacheEntry {
             timestamp: 1000,
@@ -215,17 +212,12 @@ mod tests {
         write_cache_entry(&temp_file, &entry).unwrap();
         let loaded = read_cache_entry(&temp_file).unwrap();
         assert_eq!(loaded, entry);
-
-        let _ = fs::remove_file(&temp_file);
     }
 
     #[test]
     fn test_cache_entry_none_roundtrip() {
-        let temp_file = std::env::temp_dir().join(format!(
-            "test_cache_none_{}_{}.json",
-            std::process::id(),
-            current_timestamp()
-        ));
+        let dir = tempfile::tempdir().unwrap();
+        let temp_file = dir.path().join("cache_none.json");
 
         let entry = PrCacheEntry {
             timestamp: 12345,
@@ -235,8 +227,6 @@ mod tests {
         write_cache_entry(&temp_file, &entry).unwrap();
         let loaded = read_cache_entry(&temp_file).unwrap();
         assert_eq!(loaded, entry);
-
-        let _ = fs::remove_file(&temp_file);
     }
 
     #[test]
@@ -248,12 +238,6 @@ mod tests {
         assert!(is_cache_fresh(&entry, 60, 150));
         assert!(!is_cache_fresh(&entry, 60, 160));
         assert!(!is_cache_fresh(&entry, 60, 200));
-    }
-
-    #[test]
-    fn test_gh_available_check() {
-        // In the current environment, gh was confirmed to exist
-        assert!(is_gh_available());
     }
 
     #[test]
