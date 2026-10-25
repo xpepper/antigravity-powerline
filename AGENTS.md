@@ -34,18 +34,29 @@ Welcome! This document provides architecture overviews, design constraints, and 
 
 ## 3. Development & Verification Workflow
 
-Always follow test-first development for behavioural changes:
+Always follow test-first development for behavioural changes.
+
+Run the checks defined in [the CI workflow](.github/workflows/ci.yml), the source of truth for formatting, linting (including compiler warnings), shell scripts, packaging, tests, and release builds:
 
 ```bash
 # 1. Check code formatting
-cargo fmt --check
+cargo fmt --all --check
 
-# 2. Run all unit tests
-cargo test
-
-# 3. Run linter
+# 2. Run linter
 cargo clippy --all-targets -- -D warnings
+
+# 3. Run all unit tests
+cargo test --verbose
+
+# 4. Run shell and repo-rule checks
+shellcheck scripts/* tests/*.sh
+bash scripts/check-machine-paths
 ```
+
+Before pushing a PR branch, run `scripts/mutants-diff`; kill every MISSED mutant with a test, or exclude it in [`.cargo/mutants.toml`](.cargo/mutants.toml) with the reason.
+
+On pull requests, CI's `Mutants` job runs the same script. It is advisory, not a required check: survivors are listed in the job summary and the `mutants.out` artifact.
+
 
 ---
 
@@ -60,3 +71,20 @@ Use Conventional Commits:
 - `ci: <description>` — CI/CD workflow configuration
 - `docs: <description>` — Documentation or README updates
 - `chore: <description>` — Maintenance, dependency bumps, or metadata changes
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `xpepper/antigravity-powerline`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default triage roles, each label named after its role (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
+
