@@ -6,7 +6,7 @@ A Rust status-line tool for Google Antigravity CLI (`agy`). Every refresh is a f
 
 - The hot path stays under 15 ms: no network, no heavy dependencies, no async runtime. Slow work (a `gh` call) runs in a detached background worker that only writes a disk cache.
 - Stdin payloads can be empty or change shape. Deserialize with `Option<T>` or `#[serde(default)]` and never panic.
-- State kept across refreshes goes through `src/state.rs` (private cache dir, atomic writes).
+- Disk caches written across refreshes (such as the PR cache in `src/github.rs`) must use atomic temp-file-and-rename writes so concurrent readers never observe partial state.
 - No absolute machine paths in code, docs, comments or tests.
 
 ## Contracts
