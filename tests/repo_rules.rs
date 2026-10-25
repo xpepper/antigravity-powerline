@@ -42,3 +42,26 @@ fn tests_use_isolated_tempdirs_instead_of_shared_temp_dir() {
         );
     }
 }
+
+/// Every helper must land with its first production caller rather than
+/// ahead of time behind `#[allow(dead_code)]`.
+#[test]
+fn production_code_does_not_allow_dead_code() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut files = Vec::new();
+    collect_rs_files(&root.join("src"), &mut files);
+
+    for path in files {
+        let content = fs::read_to_string(&path).expect("Rust file must be readable");
+        let prod_section = match content.find("#[cfg(test)]") {
+            Some(idx) => &content[..idx],
+            None => &content[..],
+        };
+
+        assert!(
+            !prod_section.contains("allow(dead_code)"),
+            "{} contains `allow(dead_code)` in production code; land helpers with their first caller",
+            path.strip_prefix(root).unwrap_or(&path).display()
+        );
+    }
+}

@@ -6,15 +6,7 @@ Welcome! This document provides architecture overviews, design constraints, and 
 
 ## 1. Project Overview
 
-`antigravity-powerline` is a fast, modular, and customizable status line tool for Google Antigravity CLI (`agy`) written in Rust.
-
-### Data Flow
-1. **Stdin Input**: Antigravity CLI passes a JSON payload via standard input on statusline refreshes (`src/input.rs`).
-2. **Configuration**: The tool loads `~/.gemini/powerline.toml` (or a path provided via `--config`), falling back to built-in defaults (`src/config.rs`).
-3. **PR Lookup (optional)**: If the `pr` segment is enabled, reads a disk-cached PR reference for the current branch; a stale or missing cache triggers a throttled, detached background refresh via `gh pr view` (`--fetch-pr-cache`, `src/github.rs`) so the hot path never blocks on a network call.
-4. **Segment Assembly**: Iterates through enabled segments and formats each through the segment dispatch `match` in [src/main.rs](src/main.rs).
-5. **Rendering**: The `renderer` applies the configured style and theme ANSI colors (`src/theme.rs`).
-6. **Stdout Output**: Emits the single-line formatted status line to standard output.
+`antigravity-powerline` is a fast, modular, and customizable status line tool for Google Antigravity CLI (`agy`) written in Rust. See [`src/main.rs`](src/main.rs) for the Refresh pipeline and [`src/state.rs`](src/state.rs) for private cross-Refresh state storage and daily pruning.
 
 ### Sibling Reference Repository (`copilot-powerline`)
 `antigravity-powerline` tracks the architecture, engineering conventions, and applicable features of [`xpepper/copilot-powerline`](https://github.com/xpepper/copilot-powerline) (typically cloned alongside this repo in `../copilot-powerline`). When porting features or patterns (such as `src/state.rs`, `src/github.rs`, `src/segments/pr.rs`, `src/cache_trend.rs`, `src/idle.rs`, `src/mode.rs`), consult `copilot-powerline` for the reference implementation and test coverage, and see [`TODO.md`](TODO.md) for the prioritized 5-phase roadmap.
@@ -28,7 +20,8 @@ List the tree for the layout; one file per segment lives in `src/segments/`. Not
 - `src/git.rs`: reads `.git/HEAD` directly, so the hot path never spawns `git`.
 - In [`.github/workflows/ci.yml`](.github/workflows/ci.yml), a pull request that only changes Markdown skips the Rust jobs (`scripts/docs-only-change` decides). `CI ok` is the only required check on `main`: a new required job must go in its `needs`.
 - Each `scripts/<name>[.sh]` has a `tests/test-<name>.sh`, run by a step in the CI `ShellCheck` job; a new script needs both.
-- [`tests/repo_rules.rs`](tests/repo_rules.rs): enforces mechanical repository invariants (such as isolated `tempfile::tempdir()` usage in tests so parallel mutation workers never collide).
+- [`tests/repo_rules.rs`](tests/repo_rules.rs): enforces mechanical repository invariants (isolated `tempfile::tempdir()` usage in tests, no `allow(dead_code)` in `src/`).
+- `tests/*_wiring.rs`: runs the built binary against a throwaway `HOME` so `cargo-mutants` covers `main()` wiring (`tests/prune_wiring.rs`).
 - [`CODING_STANDARDS.md`](CODING_STANDARDS.md): the judgement calls a reviewer applies to a diff.
 
 ---
@@ -41,9 +34,7 @@ List the tree for the layout; one file per segment lives in `src/segments/`. Not
 2. **Defensive Stdin Parsing**:
    - Antigravity CLI payloads may vary or be empty. Never assume a field is always present.
    - All input deserialization in `src/input.rs` must use `Option<T>` or `#[serde(default)]` and fall back gracefully without panicking.
-3. **Zero Compiler Warnings**:
-   - All code must compile cleanly with `cargo check` and `cargo test` without warnings.
-4. **No Machine-Specific Paths**:
+3. **No Machine-Specific Paths**:
    - [`scripts/check-machine-paths`](scripts/check-machine-paths) enforces portable paths in tracked files.
 
 ---
