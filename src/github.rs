@@ -76,7 +76,7 @@ pub fn write_cache_entry(cache_path: &Path, entry: &PrCacheEntry) -> std::io::Re
     crate::state::write_private_atomic(cache_path, json.as_bytes())
 }
 
-/// How long a background `gh` call may run. Shorter than the refresh
+/// How long a background `gh` call may run. Shorter than the spawn
 /// throttle, so a hung call is killed before the next worker can start.
 pub const GH_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -84,7 +84,7 @@ pub const GH_TIMEOUT: Duration = Duration::from_secs(10);
 /// is still running after `timeout` (it is killed). stderr is discarded.
 ///
 /// Without a deadline, a `gh` call stuck on the network would hold the
-/// refresh claim until it goes stale, and the next worker would pile on.
+/// spawn claim until it goes stale, and the next worker would pile on.
 pub fn output_with_timeout(command: &mut Command, timeout: Duration) -> Option<Output> {
     let mut child = command
         .stdin(Stdio::null())
@@ -130,7 +130,7 @@ pub fn lock_file_path(cache_path: &Path) -> PathBuf {
     cache_path.with_extension("lock")
 }
 
-/// Returns true if a background refresh claim for `cache_path` was taken
+/// Returns true if a background fetch claim for `cache_path` was taken
 /// recently (within `throttle_seconds`), based on the claim lock file's
 /// mtime. The lock file is a separate marker from the cache entry itself, so
 /// throttling never touches (or misrepresents the freshness of) cached data.
@@ -138,11 +138,11 @@ pub fn should_throttle_spawn(cache_path: &Path, now: u64, throttle_seconds: u64)
     is_lock_fresh(&lock_file_path(cache_path), now, throttle_seconds)
 }
 
-/// Atomically claims the right to spawn a background refresh for
+/// Atomically claims the right to spawn a background fetch for
 /// `cache_path`. Returns true if this call won the claim, false if another
 /// process already holds a live claim (or won a concurrent race for a new
 /// one). The claim never reads or writes the cache entry, so a losing (or
-/// failing) refresh attempt can never mark stale cached data as fresh.
+/// failing) fetch attempt can never mark stale cached data as fresh.
 pub fn try_claim_spawn(cache_path: &Path, now: u64, throttle_seconds: u64) -> bool {
     if should_throttle_spawn(cache_path, now, throttle_seconds) {
         return false;
@@ -165,7 +165,7 @@ pub fn try_claim_spawn(cache_path: &Path, now: u64, throttle_seconds: u64) -> bo
     if !create_lock(&guard_path) {
         if !is_lock_fresh(&guard_path, now, throttle_seconds) {
             // A crashed reclaimer left its guard behind; clear it so a
-            // later refresh can reclaim.
+            // later Refresh can reclaim.
             let _ = fs::remove_file(&guard_path);
         }
         return false;
@@ -439,7 +439,7 @@ pub fn spawn_background_fetch(repo_dir: &Path, cache_path: &Path, show_unresolve
 /// Returns the current branch's PR info, if any is cached and fresh.
 ///
 /// Never blocks on the network: a stale or missing cache triggers a
-/// throttled, detached background refresh (via re-invoking this binary with
+/// throttled, detached background fetch (via re-invoking this binary with
 /// `--fetch-pr-cache`) and returns immediately with whatever was cached.
 pub fn get_pr_info(
     repo_dir: &Path,
@@ -462,10 +462,10 @@ pub fn get_pr_info(
         return entry.pr.clone();
     }
 
-    // Cache is stale or missing. Claim the right to refresh atomically; the
+    // Cache is stale or missing. Claim the right to fetch atomically; the
     // loser of a concurrent race does not spawn a duplicate worker, and any
     // stale entry on disk is left untouched (never marked fresh) until a
-    // real refresh completes.
+    // real fetch completes.
     if try_claim_spawn(&cache_path, now, throttle_seconds) {
         spawn_background_fetch(repo_dir, &cache_path, config.show_unresolved);
     }
