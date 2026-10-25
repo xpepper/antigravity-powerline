@@ -6,17 +6,17 @@
 
 ## Phase 1: Foundation & Security Hardening (Port from `copilot-powerline`)
 
-- [ ] **1. Private Cross-Refresh State & Auto-Pruning (`src/state.rs`)**
-  - *Reference*: `../copilot-powerline/src/state.rs` and `../copilot-powerline/src/git.rs`
-  - [ ] Move state/cache files out of shared `/tmp` into user-private `dirs::cache_dir()/antigravity-powerline` (`0o700` dir, `0o600` atomic writes).
-  - [ ] Implement per-session file hashing (`session_file(kind, session_id)`) and `update_snapshot`.
-  - [ ] Implement daily stale-file pruning (`prune_if_due`, 30-day `MAX_AGE`, `PRUNABLE_KINDS`).
-  - [ ] Add `git::find_repo_root` (`src/git.rs`) so git/PR/diff lookups resolve consistently from any subdirectory.
+- [x] **1. Private Cross-Refresh State & Auto-Pruning (`src/state.rs`)**
+  - *Reference*: `../copilot-powerline/src/state.rs`, `../copilot-powerline/src/git.rs`, and `../copilot-powerline/tests/prune_wiring.rs`
+  - [x] Move state/cache files out of shared `/tmp` into user-private `dirs::cache_dir()/antigravity-powerline` (`0o700` dir, `0o600` atomic writes).
+  - [x] Implement daily stale-file pruning (`prune_if_due`, 30-day `MAX_AGE`, `PRUNABLE_KINDS`).
+  - [x] Add `git::find_repo_root` (`src/git.rs`) so git/PR/diff lookups resolve consistently from any subdirectory.
+  - [x] Add `tests/prune_wiring.rs` to cover `main()` pruning and nested-subdirectory PR cache resolution.
 
 ## Phase 2: Rich PR Segment (Port from `copilot-powerline`)
 
 - [ ] **2. PR Review State, Unresolved Threads & Hardened Fetching (`src/github.rs`, `src/segments/pr.rs`)**
-  - *Reference*: `../copilot-powerline/src/github.rs`, `../copilot-powerline/src/segments/pr.rs`, `../copilot-powerline/src/theme.rs`, `../copilot-powerline/src/config.rs`
+  - *Reference*: `../copilot-powerline/src/github.rs`, `../copilot-powerline/src/segments/pr.rs`, `../copilot-powerline/src/theme.rs`, `../copilot-powerline/src/config.rs`, `../copilot-powerline/tests/pr_wiring.rs`
   - [ ] Add `output_with_timeout` (`GH_TIMEOUT = 10s`) and atomic lock-file spawn claiming (`try_claim_spawn`) so background `gh` calls never hang or mask stale cache data.
   - [ ] Validate PR URLs with `is_safe_github_url` before splicing into OSC 8 terminal escape sequences.
   - [ ] Extend `gh pr view` query to fetch `number,url,state,isDraft,reviewDecision,latestReviews`.
@@ -24,6 +24,7 @@
   - [ ] Tint the `#<number>` hyperlink by `ReviewState` (`Approved`, `ChangesRequested`, `Draft`, or default `pr` color).
   - [ ] Support `show_review_state` (spells out `· approved`, `· changes requested`, `· draft`; always on in `plain` theme).
   - [ ] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--fetch-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
+  - [ ] Extract `Sandbox` into `tests/common/mod.rs` and add `tests/pr_wiring.rs` to cover `main()` PR worker wiring.
 
 ## Phase 3: New Segments Inspired by Copilot CLI Native Footer
 
@@ -41,10 +42,12 @@
 ## Phase 4: Session Intelligence & Ergonomics (Port from `copilot-powerline`)
 
 - [ ] **5. Prompt Cache Trend (`↑`/`↓`) & Recent Miss Alert (`· miss 133k`)**
-  - *Reference*: `../copilot-powerline/src/cache_trend.rs`, `../copilot-powerline/src/segments/cache.rs`
+  - *Reference*: `../copilot-powerline/src/state.rs`, `../copilot-powerline/src/cache_trend.rs`, `../copilot-powerline/src/segments/cache.rs`, `../copilot-powerline/tests/cache_wiring.rs`
+  - [ ] Add per-Session file hashing (`session_hash`, `session_file(kind, session_id)`) and `update_snapshot` to `src/state.rs` alongside their first caller.
   - [ ] Port `src/cache_trend.rs` using `session_id` (falling back to `conversation_id`), `total_input_tokens`, and `cache_read_input_tokens`.
   - [ ] Show `↑` / `↓` on `cache` segment when the latest step's cache hit rate diverges from the session average.
   - [ ] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a step with `>= 50k` uncached input tokens.
+  - [ ] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` and `cache_expiry`.
 
 - [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
   - *Reference*: `../copilot-powerline/src/idle.rs`, `../copilot-powerline/src/segments/cache_expiry.rs`
@@ -63,7 +66,7 @@
 ## Phase 5: Quality, Documentation & Release Automation
 
 - [ ] **9. Domain Docs, Examples & Wiring Tests**
-  - *Reference*: `../copilot-powerline/GLOSSARY.md`, `../copilot-powerline/examples/powerline.toml`, `../copilot-powerline/tests/`
-  - [ ] Add `GLOSSARY.md` adapted for Antigravity CLI domain concepts (`CODING_STANDARDS.md` and `tests/repo_rules.rs` are already in place).
+  - *Reference*: `../copilot-powerline/GLOSSARY.md`, `../copilot-powerline/examples/powerline.toml`, `../copilot-powerline/tests/init_wiring.rs`
+  - [ ] Complete `GLOSSARY.md` with any remaining Antigravity CLI domain concepts (`GLOSSARY.md`, `CODING_STANDARDS.md`, and `tests/repo_rules.rs` are in place).
   - [ ] Add annotated `examples/powerline.toml` with a sync test against `Config::default()`.
-  - [ ] Add `tests/*_wiring.rs` integration tests.
+  - [ ] Add `tests/init_wiring.rs` integration test.

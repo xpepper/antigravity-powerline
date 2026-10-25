@@ -10,6 +10,7 @@ mod icons;
 mod input;
 mod renderer;
 mod segments;
+mod state;
 mod theme;
 
 use cli::Cli;
@@ -92,21 +93,17 @@ fn main() {
         AntigravityInput::from_json(&raw_input)
     };
 
-    let git_branch = input
+    let repo_root = input
         .resolved_cwd()
-        .and_then(|cwd| git::get_git_branch(Path::new(cwd)));
+        .and_then(|cwd| git::find_repo_root(Path::new(cwd)));
+    let git_branch = repo_root.as_deref().and_then(git::get_git_branch);
 
     let gh_available = github::is_gh_available();
     let pr_info = if config.pr.enabled
         && config.segments.iter().any(|s| s == "pr")
-        && let (Some(cwd), Some(branch)) = (input.resolved_cwd(), git_branch.as_deref())
+        && let (Some(repo_dir), Some(branch)) = (repo_root.as_deref(), git_branch.as_deref())
     {
-        github::get_pr_info(
-            Path::new(cwd),
-            branch,
-            config.pr.cache_ttl_seconds,
-            gh_available,
-        )
+        github::get_pr_info(repo_dir, branch, config.pr.cache_ttl_seconds, gh_available)
     } else {
         None
     };
@@ -195,4 +192,6 @@ fn main() {
 
     let output = render_segments(&rendered_segments, config.style, &palette);
     println!("{output}");
+
+    state::prune_if_due(&state::base_dir(), std::time::SystemTime::now());
 }

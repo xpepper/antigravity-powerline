@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
-use std::fs::{self, File};
+use std::fs;
 use std::hash::{Hash, Hasher};
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -47,9 +46,7 @@ pub fn get_cache_file_path(repo_dir: &Path, branch: &str) -> PathBuf {
     branch.hash(&mut hasher);
     let hash = hasher.finish();
 
-    std::env::temp_dir()
-        .join("antigravity-powerline")
-        .join(format!("pr_{:016x}.json", hash))
+    crate::state::base_dir().join(format!("pr_{:016x}.json", hash))
 }
 
 pub fn read_cache_entry(cache_path: &Path) -> Option<PrCacheEntry> {
@@ -58,21 +55,9 @@ pub fn read_cache_entry(cache_path: &Path) -> Option<PrCacheEntry> {
 }
 
 pub fn write_cache_entry(cache_path: &Path, entry: &PrCacheEntry) -> std::io::Result<()> {
-    if let Some(parent) = cache_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
     let json = serde_json::to_string(entry)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-
-    let tmp_path = cache_path.with_extension(format!("tmp.{}", std::process::id()));
-    {
-        let mut file = File::create(&tmp_path)?;
-        file.write_all(json.as_bytes())?;
-        file.flush()?;
-    }
-
-    fs::rename(&tmp_path, cache_path)
+    crate::state::write_private_atomic(cache_path, json.as_bytes())
 }
 
 pub fn is_cache_fresh(entry: &PrCacheEntry, ttl_seconds: u64, now: u64) -> bool {
@@ -240,6 +225,7 @@ mod tests {
         let path1 = get_cache_file_path(Path::new("/some/repo"), "feature-x");
         let path2 = get_cache_file_path(Path::new("/some/repo"), "feature-x");
         let path3 = get_cache_file_path(Path::new("/some/repo"), "feature-y");
+        assert!(path1.starts_with(crate::state::base_dir()));
         assert_eq!(path1, path2);
         assert_ne!(path1, path3);
     }
