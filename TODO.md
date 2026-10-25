@@ -6,12 +6,12 @@
 
 ## Phase 1: Foundation & Security Hardening (Port from `copilot-powerline`)
 
-- [ ] **1. Private Cross-Refresh State & Auto-Pruning (`src/state.rs`)**
+- [x] **1. Private Cross-Refresh State & Auto-Pruning (`src/state.rs`)**
   - *Reference*: `../copilot-powerline/src/state.rs` and `../copilot-powerline/src/git.rs`
-  - [ ] Move state/cache files out of shared `/tmp` into user-private `dirs::cache_dir()/antigravity-powerline` (`0o700` dir, `0o600` atomic writes).
-  - [ ] Implement per-session file hashing (`session_file(kind, session_id)`) and `update_snapshot`.
-  - [ ] Implement daily stale-file pruning (`prune_if_due`, 30-day `MAX_AGE`, `PRUNABLE_KINDS`).
-  - [ ] Add `git::find_repo_root` (`src/git.rs`) so git/PR/diff lookups resolve consistently from any subdirectory.
+  - [x] Move state/cache files out of shared `/tmp` into user-private `dirs::cache_dir()/antigravity-powerline` (`0o700` dir, `0o600` atomic writes).
+  - [x] Implement per-session file hashing (`session_file(kind, session_id)`) and `update_snapshot`.
+  - [x] Implement daily stale-file pruning (`prune_if_due`, 30-day `MAX_AGE`, `PRUNABLE_KINDS`).
+  - [x] Add `git::find_repo_root` (`src/git.rs`) so git/PR/diff lookups resolve consistently from any subdirectory.
 
 ## Phase 2: Rich PR Segment (Port from `copilot-powerline`)
 
