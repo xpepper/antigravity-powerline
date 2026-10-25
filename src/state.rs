@@ -89,7 +89,7 @@ pub fn session_file(kind: &str, session_id: &str) -> PathBuf {
 
 /// Loads the snapshot at `path` (if readable), lets `assess` derive the next
 /// one, and persists it only when it changed. Write failures are ignored: the
-/// status line must render even when the cache dir is read-only.
+/// status line must print even when the cache dir is read-only.
 #[allow(dead_code)]
 pub fn update_snapshot<T>(path: &Path, assess: impl FnOnce(Option<T>) -> T) -> T
 where
@@ -184,6 +184,7 @@ mod tests {
     #[test]
     fn test_session_file_is_private_and_per_session_and_kind() {
         let a = session_file("cache", "sess-a");
+        assert!(base_dir().ends_with("antigravity-powerline"));
         assert!(a.starts_with(base_dir()));
         assert_eq!(a, session_file("cache", "sess-a"));
         assert_ne!(a, session_file("cache", "sess-b"));
