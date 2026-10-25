@@ -197,4 +197,6 @@ fn main() {
 
     let output = render_segments(&rendered_segments, config.style, &palette);
     println!("{output}");
+
+    state::prune_if_due(&state::base_dir(), std::time::SystemTime::now());
 }
