@@ -20,5 +20,5 @@ A Rust status-line tool for Google Antigravity CLI (`agy`). Every refresh is a f
 
 ## Conventions
 
-- A new segment follows the steps in `AGENTS.md`: a file in `src/segments/`, registered in `mod.rs`, a config struct with defaults, wired into the `main.rs` match.
+- A new segment adds `src/segments/<name>.rs` (pure formatting + `render_<name>_segment` + unit tests), registers it in `src/segments/mod.rs`, adds a config struct with serde defaults in `src/config.rs`, and wires it into the segment dispatch `match` in `src/main.rs`.
 - Behaviour changes come with a test that failed first.
