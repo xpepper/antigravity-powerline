@@ -44,13 +44,14 @@
 
 ## Phase 4: Session Intelligence & Ergonomics (Port from `copilot-powerline`)
 
-- [ ] **5. Prompt Cache Trend (`↑`/`↓`) & Recent Miss Alert (`· miss 133k`)**
+- [x] **5. Prompt Cache Trend (`↑`/`↓`) & Recent Miss Alert (`· miss 169k`)**
   - *Reference*: `../copilot-powerline/src/state.rs`, `../copilot-powerline/src/cache_trend.rs`, `../copilot-powerline/src/segments/cache.rs`, `../copilot-powerline/tests/cache_wiring.rs`
-  - [ ] Add per-Session file hashing (`session_hash`, `session_file(kind, session_id)`) and `update_snapshot` to `src/state.rs` alongside their first caller.
-  - [ ] Port `src/cache_trend.rs` using `session_id` (falling back to `conversation_id`), `total_input_tokens`, and `cache_read_input_tokens`.
-  - [ ] Show `↑` / `↓` on `cache` segment when the latest step's cache hit rate diverges from the session average.
-  - [ ] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a step with `>= 50k` uncached input tokens.
-  - [ ] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` and `cache_expiry`.
+  - [x] Add per-Session file hashing (`session_hash`, `session_file(kind, session_id)`) and `update_snapshot` to `src/state.rs` alongside their first caller.
+  - [x] Add `src/cache_trend.rs`, adapted rather than ported: Antigravity's `current_usage` is per-Step (confirmed against local conversation `gen_metadata`), so the snapshot sums Session totals itself instead of diffing cumulative counters. Keyed by `conversation_id` (falling back to `session_id`, its documented compatibility copy); no snapshot while the id is empty.
+  - [x] Show `↑` / `↓` on `cache` segment when the latest Step's cache hit rate diverges from the Session average by more than 5 points.
+  - [x] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a Step with `>= 50k` uncached input tokens, even when `hide_when_zero` would hide a fully cold Step.
+  - [x] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` (`cache_expiry` is covered with item 6).
+  - [ ] Follow-up: capture one live status line payload to confirm `current_usage` mirrors the per-Step `gen_metadata` counts (inferred from the docs example and local data, not yet observed directly).
 
 - [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
   - *Reference*: `../copilot-powerline/src/idle.rs`, `../copilot-powerline/src/segments/cache_expiry.rs`

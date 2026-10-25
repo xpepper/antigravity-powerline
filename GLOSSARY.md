@@ -8,9 +8,30 @@ A status line for Google Antigravity CLI that keeps context usage, model quota, 
 One Antigravity CLI conversation, identified by its session id.
 _Avoid_: Chat, thread
 
+**Step**:
+A single model call within a Session; the smallest unit of activity the status line can tell apart.
+_Avoid_: Call, turn, request, generation
+
 **Refresh**:
-One run of the status line, triggered by Antigravity CLI on an event or on its refresh timer.
+One run of the status line, triggered by Antigravity CLI on an event or on its refresh timer. A timer-driven Refresh may report the same Step again.
 _Avoid_: Tick, update, render
+
+## Prompt cache
+
+**Prompt Cache**:
+The model provider's cache of recently sent context; tokens read from it cost less than tokens sent fresh.
+_Avoid_: Cache (unqualified, when other caches are in play)
+
+**Cache Hit Rate**:
+The share of the latest Step's prompt tokens read from the Prompt Cache.
+_Avoid_: Cache ratio, cache efficiency
+
+**Cache Trend**:
+Whether the latest Step hit the Prompt Cache clearly more or clearly less than the Session's earlier Steps did on average.
+
+**Cache Miss**:
+A Step that sent a large number of input tokens not read from the Prompt Cache, such as the first Step after the cache expired.
+_Avoid_: Cold start, cache flush
 
 ## Presentation
 
