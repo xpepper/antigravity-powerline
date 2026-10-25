@@ -37,7 +37,7 @@ List the tree for the layout; one file per segment lives in `src/segments/`. Not
 
 1. **Sub-15ms Execution**:
    - This tool runs inside an interactive terminal status line loop.
-   - Zero heavy dependencies, no async runtimes, and no inline network calls during status line execution. Any segment that needs an external command or network call (such as `pr` or `ci`) must read a disk cache and refresh it via a detached, throttled background process.
+   - Zero heavy dependencies, no async runtimes, and no inline network calls during status line execution. Any segment that needs an external command or network call (such as `pr`) must read a disk cache and refresh it via a detached, throttled background process.
 2. **Defensive Stdin Parsing**:
    - Antigravity CLI payloads may vary or be empty. Never assume a field is always present.
    - All input deserialization in `src/input.rs` must use `Option<T>` or `#[serde(default)]` and fall back gracefully without panicking.
