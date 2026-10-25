@@ -26,6 +26,9 @@
   - [x] Support `show_unresolved` (fetches unresolved review threads via `gh api graphql` when `--show-unresolved` is passed to background worker, renders `· N unresolved` in alert color).
   - [x] Extract `Sandbox` into `tests/common/mod.rs` and add `tests/pr_wiring.rs` to cover `main()` PR worker wiring.
 
+- [ ] **2a. Decide How Merged / Closed PRs Render (`src/github.rs`, `src/segments/pr.rs`)**
+  - A merged or closed PR still renders as `PR #29` in the default `pr` colour; only its Review State is dropped (`parse_pr_view`). Decide whether to hide it, mark it (e.g. `· merged`), or keep it as is. `copilot-powerline` behaves the same today. Raised in PR #5 review.
+
 ## Phase 3: New Segments Inspired by Copilot CLI Native Footer
 
 - [ ] **3. Dedicated `ci` Segment (Branch & PR Check Status)**
