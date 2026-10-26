@@ -8,6 +8,7 @@ mod config;
 mod git;
 mod github;
 mod icons;
+mod idle;
 mod input;
 mod renderer;
 mod segments;
@@ -20,6 +21,7 @@ use input::AntigravityInput;
 use renderer::render_segments;
 use segments::artifacts::render_artifacts_segment;
 use segments::cache::{self, render_cache_segment};
+use segments::cache_expiry::{self, render_cache_expiry_segment};
 use segments::git::render_git_segment;
 use segments::model::render_model_segment;
 use segments::pr::{self, render_pr_segment};
@@ -122,6 +124,19 @@ fn main() {
         cache_trend::Signals::default()
     };
 
+    let idle_seconds = if cache_expiry::is_visible(&config.segments, &config.cache_expiry)
+        && let Some(id) = input.session_key()
+        && let Some(step) = cache_trend::Step::latest(&input.context_window)
+    {
+        Some(idle::idle_seconds(
+            &idle::snapshot_path(id),
+            step,
+            github::current_timestamp(),
+        ))
+    } else {
+        None
+    };
+
     let mut rendered_segments = Vec::new();
 
     for seg in &config.segments {
@@ -175,6 +190,17 @@ fn main() {
                     &input.context_window,
                     cache_signals,
                     &config.cache,
+                    config.icon_set,
+                    &palette,
+                ) {
+                    rendered_segments.push(s);
+                }
+            }
+            cache_expiry::NAME => {
+                if let Some(s) = render_cache_expiry_segment(
+                    &input.context_window,
+                    idle_seconds,
+                    &config.cache_expiry,
                     config.icon_set,
                     &palette,
                 ) {

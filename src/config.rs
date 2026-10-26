@@ -70,6 +70,8 @@ pub struct Config {
     #[serde(default)]
     pub cache: CacheConfig,
     #[serde(default)]
+    pub cache_expiry: CacheExpiryConfig,
+    #[serde(default)]
     pub total_tokens: TotalTokensConfig,
     #[serde(default)]
     pub artifacts: ArtifactsConfig,
@@ -90,6 +92,7 @@ impl Default for Config {
             tokens: TokensConfig::default(),
             quota: QuotaConfig::default(),
             cache: CacheConfig::default(),
+            cache_expiry: CacheExpiryConfig::default(),
             total_tokens: TotalTokensConfig::default(),
             artifacts: ArtifactsConfig::default(),
         }
@@ -108,6 +111,7 @@ fn default_segments() -> Vec<String> {
         "tokens".to_string(),
         "quota".to_string(),
         "cache".to_string(),
+        "cache_expiry".to_string(),
         "total_tokens".to_string(),
     ]
 }
@@ -266,6 +270,50 @@ impl Default for CacheConfig {
     }
 }
 
+/// Reminder shown once the Session has been idle past `idle_seconds`: the
+/// idle time and that the Prompt Cache is likely cold (e.g.
+/// `Idle: 54m · cache likely cold`). There is no refresh timer, so it shows
+/// on the first Refresh after the break, such as when the user starts typing
+/// the next prompt, and does not count up while the Session sits idle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheExpiryConfig {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    pub prefix: Option<String>,
+    /// Idle time before the reminder shows.
+    #[serde(default = "default_cache_expiry_idle_seconds")]
+    pub idle_seconds: u64,
+    /// Stay quiet below this context size, where re-reading it costs little.
+    #[serde(default = "default_cache_expiry_min_tokens")]
+    pub min_tokens: u64,
+    /// Also show the context size.
+    #[serde(default)]
+    pub show_tokens: bool,
+}
+
+/// Thirty minutes: well past common Prompt Cache lifetimes, so ordinary
+/// pauses stay quiet and the cache is very likely cold when the reminder
+/// shows.
+fn default_cache_expiry_idle_seconds() -> u64 {
+    1_800
+}
+
+fn default_cache_expiry_min_tokens() -> u64 {
+    50_000
+}
+
+impl Default for CacheExpiryConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            prefix: None,
+            idle_seconds: default_cache_expiry_idle_seconds(),
+            min_tokens: default_cache_expiry_min_tokens(),
+            show_tokens: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TotalTokensConfig {
     #[serde(default = "default_true")]
@@ -391,7 +439,8 @@ mod tests {
         assert_eq!(cfg.style, Style::Minimal);
         assert_eq!(cfg.icon_set, IconSet::Plain);
         assert_eq!(cfg.theme, "colorblind");
-        assert_eq!(cfg.segments.len(), 7);
+        assert_eq!(cfg.segments.len(), 8);
+        assert_eq!(cfg.segments[5..7], ["cache", "cache_expiry"]);
         assert!(cfg.model.enabled);
         assert!(cfg.git.enabled);
         assert!(cfg.pr.enabled);
@@ -403,9 +452,15 @@ mod tests {
         assert!(cfg.cache.show_last_miss);
         assert_eq!(cfg.cache.miss_min_tokens, 50_000);
         assert_eq!(cfg.cache.miss_visible_seconds, 300);
+        assert!(cfg.cache_expiry.enabled);
+        assert_eq!(cfg.cache_expiry.idle_seconds, 1_800);
+        assert_eq!(cfg.cache_expiry.min_tokens, 50_000);
+        assert!(!cfg.cache_expiry.show_tokens);
         let omitted: Config = toml::from_str("[pr]\nhyperlinks = true\n").unwrap();
         assert!(!omitted.pr.show_review_state);
         assert!(!omitted.pr.show_unresolved);
+        assert_eq!(omitted.cache_expiry.idle_seconds, 1_800);
+        assert_eq!(omitted.cache_expiry.min_tokens, 50_000);
     }
 
     #[test]
