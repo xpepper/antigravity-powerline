@@ -79,6 +79,16 @@ fn test_no_snapshot_without_a_conversation() {
 }
 
 #[test]
+fn test_no_snapshot_before_the_first_step() {
+    let sandbox = sandbox_with_short_break();
+    let before_first_step = r#"{"conversation_id":"conv-a","context_window":{"total_input_tokens":200000,"context_window_size":1048576}}"#;
+
+    sandbox.refresh(before_first_step, &[]);
+
+    assert!(sandbox.state_files("idle_").is_empty());
+}
+
+#[test]
 fn test_no_snapshot_when_the_segment_is_not_listed() {
     let sandbox = Sandbox::new();
     sandbox.write_config("segments = [\"tokens\"]\n");
