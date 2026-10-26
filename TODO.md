@@ -91,5 +91,6 @@
   - [x] Document the release steps (tagging, secrets, crates.io trusted-publisher setup) for maintainers.
   - *Decisions (2026-10-26)*: first automated release is `0.3.0` (features since the hand-published `0.2.1`); versions stay chosen by hand, with a written SemVer policy in `RELEASING.md`; `v0.2.0` / `v0.2.1` tags backfilled on the commits published to crates.io. Two PRs: (1) dist pipeline and docs, (2) `scripts/release.sh` with `tests/test-release.sh`.
   - [x] Port `scripts/release.sh` (`prepare X.Y.Z`, `tag`, `--dry-run`) with its mocked test suite, run from the CI `ShellCheck` job.
-  - [ ] Maintainer setup: `HOMEBREW_TAP_TOKEN` repository secret, crates.io trusted publisher (`xpepper` / `antigravity-powerline` / `release.yml`).
+  - [x] Pin dist 0.33.1, the version installed locally: dist refuses `dist plan` on a mismatch, which `release.sh prepare` runs. Follow-up: `copilot-powerline` still pins 0.33.0, so its `release.sh prepare` fails the same way; bump it there too.
+  - [x] Maintainer setup: `HOMEBREW_TAP_TOKEN` repository secret, crates.io trusted publisher (`xpepper` / `antigravity-powerline` / `release.yml`).
   - [ ] Cut `0.3.0` with the script and verify every channel (GitHub Release, installer, Homebrew, crates.io, `cargo binstall`).
