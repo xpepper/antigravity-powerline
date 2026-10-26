@@ -52,6 +52,7 @@
   - [x] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a Step with `>= 50k` uncached input tokens, even when `hide_when_zero` would hide a fully cold Step.
   - [x] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` (`cache_expiry` is covered with item 6).
   - [ ] Follow-up: capture one live status line payload to confirm `current_usage` mirrors the per-Step `gen_metadata` counts (inferred from the docs example and local data, not yet observed directly).
+  - [ ] Follow-up: two consecutive Steps with identical input, cache-read and output counts are deduplicated as one timer-driven Refresh, so the second is not counted and its Cache Miss does not renew. Once a live payload is captured, check whether `context_window.total_input_tokens` / `total_output_tokens` advance once per Step; if so, add them to the deduplication key. Raised in PR #6 review.
   - [ ] Follow-up (review judgement call, not done): the clock comes from `github::current_timestamp` (house style shared with `copilot-powerline`).
 
 - [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
