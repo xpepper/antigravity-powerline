@@ -46,6 +46,7 @@ Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline),
 - 🎯 **Context Window Monitoring**: Real-time context token usage vs model capacity, percentage used, and alert threshold warnings (`⚠️ `).
 - ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity, plus the time left before the 5-hour window resets (e.g. `5h: 24% (2h 36m)`).
 - ⚡ **Prompt Cache Hit Rate, Trend & Misses**: Shows the latest Step's cache hit rate, an arrow (`↑`/`↓`) when it is clearly above or below the session average, and a large cache miss (`· miss 169k`) for five minutes after it happens.
+- 💤 **Long-Break Reminder**: After 30 idle minutes, shows how long the session has been idle and that the prompt cache is likely cold, so the next Step will likely re-read the whole context at full price (e.g. `Idle: 54m · cache likely cold`). Antigravity CLI does not refresh the status line while idle, so it appears when you start typing the next prompt rather than counting up while you are away.
 - 📊 **Total Session Tokens**: Displays cumulative turn throughput across the entire interactive session.
 - 📦 **Artifacts Counter**: Displays number of generated artifacts in the current workspace.
 - 🎨 **Multiple Styles**: Choose from `minimal`, `powerline`, `capsule`, or `plain`.
@@ -108,6 +109,7 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 | `tokens` | `󰮚` / `⚠️` | `🪙` / `⚠️` | `Tokens:` | `47k/1.0M (5%)` | Active context tokens vs model limit. Switches to `⚠️ ` when crossing alert threshold. |
 | `quota` | `󰔛` | `⏳` | `Quota:` | `5h: 96% (4h 47m)  wk: 88%` | Remaining 5-hour and weekly quotas, color-coded by capacity, with time until the 5-hour window resets. |
 | `cache` | `󰘸` | `⚡` | `Cache:` | `97% ↓ · miss 169k` | Latest Step's prompt cache hit rate, its trend against the session average, and any recent large miss. Hidden when zero unless a miss is showing. |
+| `cache_expiry` | `󰔟` | `💤` | `Idle:` | `54m · cache likely cold` | **Long-Break Reminder**: Appears on the first Refresh after the session has been idle for `idle_seconds` (default 1800, 30 minutes), typically as you start typing the next prompt; it does not count up on screen. It measures idle time, not the cache, hence "likely". Goes away with the next Step. Hidden below `min_tokens` (default 50k) of context. With `show_tokens = true` *(opt-in)*, adds the context size (`· 92k context`). |
 | `total_tokens` | `󰓅` | `📊` | `Total:` | `52k` | Total session token throughput. |
 | `artifacts` | `󰏗` | `📦` | `Artifacts:` | `2` | Number of artifacts created in the current conversation. |
 
@@ -128,6 +130,7 @@ segments = [
     "tokens",
     "quota",
     "cache",
+    "cache_expiry",
     "total_tokens",
     "artifacts",
 ]
@@ -173,6 +176,12 @@ show_last_miss = true        # show `· miss 169k` after a Step with many uncach
 miss_min_tokens = 50000      # uncached input tokens that make a Step a miss
 miss_visible_seconds = 300   # how long the miss stays on screen
 
+[cache_expiry]
+enabled = true
+idle_seconds = 1800          # idle time before "cache likely cold" shows
+min_tokens = 50000           # stay quiet below this context size
+show_tokens = false          # append the context size (`· 92k context`)
+
 [total_tokens]
 enabled = true
 hide_when_zero = true
@@ -181,6 +190,8 @@ hide_when_zero = true
 enabled = true
 hide_when_zero = true
 ```
+
+If your `powerline.toml` sets `segments`, segments added in later releases (such as `cache_expiry`) only show once you add them to that list.
 
 ---
 

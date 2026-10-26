@@ -55,11 +55,12 @@
   - [x] Follow-up: two consecutive Steps with identical input, cache-read and output counts are deduplicated as one repeated Refresh, so the second is not counted and its Cache Miss does not renew. The live capture showed `total_output_tokens` is the running sum of Step outputs and `total_input_tokens` changed on every Step, so add both to the deduplication key. Also drop "timer" from the `src/cache_trend.rs` comments and `test_timer_refresh_keeps_the_arrow` (there is no timer, see Refresh in `GLOSSARY.md`). Raised in PR #6 review. Done: `Step` carries both totals, built by `Step::latest` from the whole `context_window`; snapshots written before the change reset once to a fresh baseline.
   - [ ] Follow-up (review judgement call, not done): the clock comes from `github::current_timestamp` (house style shared with `copilot-powerline`).
 
-- [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
+- [x] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
   - *Reference*: `../copilot-powerline/src/idle.rs`, `../copilot-powerline/src/segments/cache_expiry.rs`
   - *Live capture (2026-10-26, agy 1.4.7)*: Antigravity CLI has no refresh timer (no Refresh during 327s idle), unlike Copilot CLI's `refreshInterval` that `idle.rs` relies on. One Refresh arrives when the user starts typing into an empty prompt (inferred from timing, not documented), so the reminder cannot count up on screen but shows as the user starts the next prompt. `session_id` was always empty, so key the idle snapshot by `conversation_id` like `cache_trend`; `total_output_tokens` grows on every Step and can serve as the "a Step happened" counter.
-  - [ ] Port `src/idle.rs` and `src/segments/cache_expiry.rs` (`Idle: 30m · cache likely cold`).
-  - [ ] Track idle time per session across refreshes; hide below `min_tokens` (50k) or `idle_seconds` (1800s).
+  - [x] Port `src/idle.rs` and `src/segments/cache_expiry.rs` (`Idle: 30m · cache likely cold`).
+  - [x] Track idle time per session across refreshes; hide below `min_tokens` (50k) or `idle_seconds` (1800s).
+  - *Adaptations*: the idle clock restarts when `cache_trend::Step::latest` changes (the same new-Step rule as `cache_trend`, both totals included) instead of on a cumulative token counter; keyed by `session_key()`, no snapshot without one or before the first Step; context size from `active_tokens()`; emoji `💤` since `⏳` is taken by `quota`; joins `default_segments()` after `cache`. Docs promise no live counter. Wiring covered by `tests/cache_expiry_wiring.rs`.
 
 - [ ] **7. Compact / Full Display Mode Toggle (`--toggle`, `src/mode.rs`)**
   - *Reference*: `../copilot-powerline/src/mode.rs`
