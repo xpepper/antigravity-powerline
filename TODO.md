@@ -61,6 +61,9 @@
   - [x] Port `src/idle.rs` and `src/segments/cache_expiry.rs` (`Idle: 30m · cache likely cold`).
   - [x] Track idle time per session across refreshes; hide below `min_tokens` (50k) or `idle_seconds` (1800s).
   - *Adaptations*: the idle clock restarts when `cache_trend::Step::latest` changes (the same new-Step rule as `cache_trend`, both totals included) instead of on a cumulative token counter; keyed by `session_key()`, no snapshot without one or before the first Step; context size from `active_tokens()`; emoji `💤` since `⏳` is taken by `quota`; joins `default_segments()` after `cache`. Docs promise no live counter. Wiring covered by `tests/cache_expiry_wiring.rs`.
+  - [ ] Follow-up (review judgement call, not done): `idle_seconds` names both the config threshold and the measured idle time (`idle::idle_seconds`, the `main` local, the render parameter), as in `copilot-powerline`; consider renaming the measured value (e.g. `idle_for`).
+  - [ ] Follow-up (review judgement call, not done): the `cache_trend` and idle gates in `main` repeat the `session_key()` / `Step::latest` / `current_timestamp()` lookup; bind it once if a third caller appears.
+  - [ ] Follow-up (review judgement call, not done): `Step` now has two users (`cache_trend`, `idle`); consider moving it out of `cache_trend`.
 
 - [ ] **7. Compact / Full Display Mode Toggle (`--toggle`, `src/mode.rs`)**
   - *Reference*: `../copilot-powerline/src/mode.rs`
