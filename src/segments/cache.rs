@@ -1,5 +1,5 @@
 use super::is_listed;
-use crate::cache_trend::{Signals, Trend};
+use crate::cache_trend::{Signals, Step, Trend};
 use crate::config::{CacheConfig, IconSet};
 use crate::icons::cache_icon;
 use crate::input::ContextWindowInfo;
@@ -29,16 +29,11 @@ pub fn render_cache_segment(
         return None;
     }
 
-    let cached = ctx.cached_tokens();
-    let usage = ctx.current_usage.as_ref();
-    let inp = usage.and_then(|u| u.input_tokens).unwrap_or(0);
-    let total_prompt = inp + cached;
-
-    let hit_pct = if total_prompt > 0 {
-        ((cached as f64 / total_prompt as f64) * 100.0).round() as u64
-    } else {
-        0
-    };
+    let hit_pct = ctx
+        .current_usage
+        .as_ref()
+        .and_then(|usage| Step::from(usage).hit_rate())
+        .map_or(0, |pct| pct.round() as u64);
 
     // A recent miss is worth showing even on the fully cold Step it came from.
     let recent_miss = signals.recent_miss.filter(|_| config.show_last_miss);
@@ -106,6 +101,25 @@ mod tests {
         let rendered =
             render_cache_segment(&ctx, Signals::default(), &cfg, IconSet::Plain, &p).unwrap();
         assert_eq!(rendered, "Cache: 87%");
+    }
+
+    #[test]
+    fn test_render_cache_rounds_an_exact_half_up() {
+        // 23k of 40k prompt tokens from the cache is exactly 57.5%.
+        let ctx = ContextWindowInfo {
+            current_usage: Some(CurrentUsageInfo {
+                input_tokens: Some(17_000),
+                cache_read_input_tokens: Some(23_000),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let cfg = CacheConfig::default();
+        let p = Palette::for_theme("plain");
+
+        let rendered =
+            render_cache_segment(&ctx, Signals::default(), &cfg, IconSet::Plain, &p).unwrap();
+        assert_eq!(rendered, "Cache: 58%");
     }
 
     #[test]

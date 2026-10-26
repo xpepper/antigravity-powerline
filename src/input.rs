@@ -115,13 +115,6 @@ impl ContextWindowInfo {
         }
     }
 
-    pub fn cached_tokens(&self) -> u64 {
-        self.current_usage
-            .as_ref()
-            .and_then(|u| u.cache_read_input_tokens)
-            .unwrap_or(0)
-    }
-
     pub fn total_turn_tokens(&self) -> u64 {
         let inp = self.total_input_tokens.unwrap_or(0);
         let out = self.total_output_tokens.unwrap_or(0);
@@ -228,7 +221,8 @@ mod tests {
 
         assert_eq!(input.context_window.active_tokens(), 47427);
         assert_eq!(input.context_window.limit_tokens(), 1048576);
-        assert_eq!(input.context_window.cached_tokens(), 36647);
+        let usage = input.context_window.current_usage.as_ref().unwrap();
+        assert_eq!(usage.cache_read_input_tokens, Some(36647));
         assert_eq!(input.context_window.total_turn_tokens(), 47427 + 4713);
         assert!((input.context_window.effective_used_percentage() - 4.52).abs() < 0.001);
 

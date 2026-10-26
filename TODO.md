@@ -52,7 +52,7 @@
   - [x] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a Step with `>= 50k` uncached input tokens, even when `hide_when_zero` would hide a fully cold Step.
   - [x] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` (`cache_expiry` is covered with item 6).
   - [ ] Follow-up: capture one live status line payload to confirm `current_usage` mirrors the per-Step `gen_metadata` counts (inferred from the docs example and local data, not yet observed directly).
-  - [ ] Follow-up (review judgement calls, not done): `render_cache_segment` recomputes the hit rate that `cache_trend` derives from a `Step`, so one shared function could serve both; the clock comes from `github::current_timestamp` (house style shared with `copilot-powerline`).
+  - [ ] Follow-up (review judgement call, not done): the clock comes from `github::current_timestamp` (house style shared with `copilot-powerline`).
 
 - [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
   - *Reference*: `../copilot-powerline/src/idle.rs`, `../copilot-powerline/src/segments/cache_expiry.rs`

@@ -43,6 +43,11 @@ impl Step {
     fn prompt_tokens(&self) -> u64 {
         self.input_tokens + self.cache_read_tokens
     }
+
+    /// Cache Hit Rate in percent, `None` when the Step sent no prompt tokens.
+    pub fn hit_rate(&self) -> Option<f64> {
+        hit_rate(self.cache_read_tokens, self.prompt_tokens())
+    }
 }
 
 impl From<&CurrentUsageInfo> for Step {
@@ -92,7 +97,8 @@ pub fn assess(prev: Option<Snapshot>, step: Step, now: u64, miss_min_tokens: u64
         return prev;
     }
 
-    let delta = hit_rate(step.cache_read_tokens, step.prompt_tokens())
+    let delta = step
+        .hit_rate()
         .zip(hit_rate(prev.cache_read_tokens, prev.prompt_tokens))
         .map(|(latest, average)| latest - average);
     let trend = match delta {
