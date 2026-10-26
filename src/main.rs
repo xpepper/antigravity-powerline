@@ -117,10 +117,7 @@ fn main() {
             &cache_trend::snapshot_path(id),
             usage.into(),
             github::current_timestamp(),
-            cache_trend::MissRule {
-                min_tokens: config.cache.miss_min_tokens,
-                visible_seconds: config.cache.miss_visible_seconds,
-            },
+            &config.cache,
         )
     } else {
         cache_trend::Signals::default()

@@ -6,6 +6,7 @@
 //! has no Session cache totals, so the Session average is summed here, in a
 //! per-Session snapshot, one Step at a time.
 
+use crate::config::CacheConfig;
 use crate::input::CurrentUsageInfo;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -120,10 +121,10 @@ fn hit_rate(cache_read: u64, prompt: u64) -> Option<f64> {
 }
 
 impl Snapshot {
-    /// Size of the last miss while it is at most `visible_seconds` old.
-    pub fn recent_miss(&self, now: u64, visible_seconds: u64) -> Option<u64> {
+    /// Size of the last miss while it is at most `miss_visible_seconds` old.
+    pub fn recent_miss(&self, now: u64, miss_visible_seconds: u64) -> Option<u64> {
         self.last_miss
-            .filter(|miss| now.saturating_sub(miss.at) <= visible_seconds)
+            .filter(|miss| now.saturating_sub(miss.at) <= miss_visible_seconds)
             .map(|miss| miss.tokens)
     }
 }
@@ -132,29 +133,22 @@ pub fn snapshot_path(session_id: &str) -> PathBuf {
     crate::state::session_file("cache", session_id)
 }
 
-/// When a Step counts as a miss, and how long it stays visible.
-#[derive(Debug, Clone, Copy)]
-pub struct MissRule {
-    pub min_tokens: u64,
-    pub visible_seconds: u64,
-}
-
 /// What the cache segment shows from the Session snapshot.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Signals {
     pub trend: Option<Trend>,
-    /// Size of a miss at most `visible_seconds` old.
+    /// Size of a miss at most `miss_visible_seconds` old.
     pub recent_miss: Option<u64>,
 }
 
 /// Reads the Session snapshot at `path`, counts `step` into it and persists
 /// the result. Returns what to display.
-pub fn check(path: &Path, step: Step, now: u64, rule: MissRule) -> Signals {
+pub fn check(path: &Path, step: Step, now: u64, config: &CacheConfig) -> Signals {
     let snapshot =
-        crate::state::update_snapshot(path, |prev| assess(prev, step, now, rule.min_tokens));
+        crate::state::update_snapshot(path, |prev| assess(prev, step, now, config.miss_min_tokens));
     Signals {
         trend: snapshot.trend,
-        recent_miss: snapshot.recent_miss(now, rule.visible_seconds),
+        recent_miss: snapshot.recent_miss(now, config.miss_visible_seconds),
     }
 }
 
@@ -323,11 +317,12 @@ mod tests {
     fn test_check_carries_the_session_across_refreshes() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("cache_0123456789abcdef.json");
-        let rule = MissRule {
-            min_tokens: MISS_MIN,
-            visible_seconds: 300,
+        let config = CacheConfig {
+            miss_min_tokens: MISS_MIN,
+            miss_visible_seconds: 300,
+            ..CacheConfig::default()
         };
-        let check = |step, now| super::check(&path, step, now, rule);
+        let check = |step, now| super::check(&path, step, now, &config);
 
         assert_eq!(check(step(9_000, 40_000), NOW), Signals::default());
         let after_miss = check(step(168_800, 0), NOW + 10);
