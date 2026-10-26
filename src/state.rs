@@ -2,14 +2,17 @@
 //! display mode, prompt-cache and idle snapshots). Every Refresh is a fresh
 //! process, so any cross-Refresh memory has to live on disk.
 
+use serde::{Serialize, de::DeserializeOwned};
+use std::collections::hash_map::DefaultHasher;
 use std::fs::{self, File};
+use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 /// Kinds of per-Session or per-branch files that pruning may delete. Anything
 /// else in the state directory (the `mode` override, the prune marker) is
-/// never touched.
+/// never touched. `session_file` asserts its kind is listed here.
 const PRUNABLE_KINDS: [&str; 3] = ["pr", "cache", "idle"];
 
 /// A Session idle longer than this loses its snapshots; resuming it only
@@ -61,6 +64,45 @@ pub fn write_private_atomic(path: &Path, contents: &[u8]) -> std::io::Result<()>
     }
 
     fs::rename(&tmp_path, path)
+}
+
+/// 16-hex-digit hash of a Session id, so it can name a file without exposing
+/// the id. Stable across Refreshes of one build, not guaranteed across Rust
+/// versions (state files are short-lived caches).
+fn session_hash(session_id: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    session_id.hash(&mut hasher);
+    format!("{:016x}", hasher.finish())
+}
+
+/// Path of a per-Session state file, e.g. `cache_<hash>.json`. The Session id
+/// is hashed so arbitrary ids can never escape the state directory.
+pub fn session_file(kind: &str, session_id: &str) -> PathBuf {
+    debug_assert!(
+        PRUNABLE_KINDS.contains(&kind),
+        "unknown state kind {kind:?}: add it to PRUNABLE_KINDS or it is never pruned"
+    );
+    base_dir().join(format!("{kind}_{}.json", session_hash(session_id)))
+}
+
+/// Loads the snapshot at `path` (if readable), lets `assess` derive the next
+/// one, and persists it only when it changed. Write failures are ignored: the
+/// status line must render even when the state directory is read-only.
+pub fn update_snapshot<T>(path: &Path, assess: impl FnOnce(Option<T>) -> T) -> T
+where
+    T: Serialize + DeserializeOwned + PartialEq + Copy,
+{
+    let prev = fs::read_to_string(path)
+        .ok()
+        .and_then(|content| serde_json::from_str(&content).ok());
+    let next = assess(prev);
+
+    if prev != Some(next)
+        && let Ok(json) = serde_json::to_string(&next)
+    {
+        let _ = write_private_atomic(path, json.as_bytes());
+    }
+    next
 }
 
 /// True only for names this tool generates: `<kind>_<16 lowercase hex>` plus
@@ -148,6 +190,67 @@ mod tests {
     #[test]
     fn test_base_dir_ends_with_antigravity_powerline() {
         assert!(base_dir().ends_with("antigravity-powerline"));
+    }
+
+    #[test]
+    fn test_session_file_is_private_and_per_session_and_kind() {
+        let a = session_file("cache", "sess-a");
+        assert!(a.starts_with(base_dir()));
+        assert_eq!(a, session_file("cache", "sess-a"));
+        assert_ne!(a, session_file("cache", "sess-b"));
+        assert_ne!(a, session_file("idle", "sess-a"));
+    }
+
+    #[test]
+    fn test_session_file_name_is_prunable() {
+        let path = session_file("cache", "../../etc/passwd");
+        let name = path.file_name().unwrap().to_str().unwrap();
+        assert!(is_prunable_name(name), "{name} would never be pruned");
+        assert_eq!(path.parent(), Some(base_dir().as_path()));
+    }
+
+    #[test]
+    #[cfg(debug_assertions)]
+    #[should_panic(expected = "unknown state kind")]
+    fn test_session_file_rejects_a_kind_that_pruning_does_not_know() {
+        session_file("brand_new", "sess-a");
+    }
+
+    #[test]
+    fn test_update_snapshot_hands_the_persisted_value_to_the_next_refresh() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("cache_0123456789abcdef.json");
+
+        let first = update_snapshot(&path, |prev: Option<u64>| {
+            assert_eq!(prev, None);
+            7
+        });
+        let second = update_snapshot(&path, |prev: Option<u64>| prev.unwrap() + 1);
+
+        assert_eq!((first, second), (7, 8));
+    }
+
+    #[test]
+    fn test_update_snapshot_treats_an_unreadable_snapshot_as_missing() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("cache_0123456789abcdef.json");
+        fs::write(&path, "not json").unwrap();
+
+        let next = update_snapshot(&path, |prev: Option<u64>| prev.unwrap_or(42));
+
+        assert_eq!(next, 42);
+    }
+
+    #[test]
+    fn test_update_snapshot_still_returns_when_the_write_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir
+            .path()
+            .join("missing")
+            .join("cache_0123456789abcdef.json");
+        fs::write(dir.path().join("missing"), "a file, not a dir").unwrap();
+
+        assert_eq!(update_snapshot(&path, |_: Option<u64>| 5), 5);
     }
 
     #[test]
