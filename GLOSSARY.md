@@ -13,7 +13,7 @@ A single model call within a Session; the smallest unit of activity the status l
 _Avoid_: Call, turn, request, generation
 
 **Refresh**:
-One run of the status line, triggered by Antigravity CLI on an event or on its refresh timer. A timer-driven Refresh may report the same Step again.
+One run of the status line, triggered by Antigravity CLI on an event: a Step finishing, the agent state changing, the user starting to type into an empty prompt, or exit. There is no refresh timer, so nothing refreshes while a Session sits idle. Several Refreshes may report the same Step.
 _Avoid_: Tick, update, render
 
 ## Prompt cache
