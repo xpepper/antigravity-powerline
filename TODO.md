@@ -75,3 +75,11 @@
   - [ ] Complete `GLOSSARY.md` with any remaining Antigravity CLI domain concepts (`GLOSSARY.md`, `CODING_STANDARDS.md`, and `tests/repo_rules.rs` are in place).
   - [ ] Add annotated `examples/powerline.toml` with a sync test against `Config::default()`.
   - [ ] Add `tests/init_wiring.rs` integration test.
+
+- [ ] **10. Build & Release Pipeline (multi-platform binaries, crates.io, Homebrew)**
+  - *Reference*: `../copilot-powerline/dist-workspace.toml`, `../copilot-powerline/.github/workflows/release.yml`, `../copilot-powerline/.github/workflows/publish-crates.yml`, `[profile.dist]` in `../copilot-powerline/Cargo.toml`
+  - [ ] Set up `cargo-dist` (same version as `copilot-powerline`) with `shell` and `homebrew` installers, triggered by pushing a version tag.
+  - [ ] Build release binaries for `aarch64-apple-darwin`, `x86_64-apple-darwin`, `aarch64-unknown-linux-gnu` and `x86_64-unknown-linux-gnu`, on non-deprecated `ubuntu-24.04` / `ubuntu-24.04-arm` runners, and attach them to a GitHub Release.
+  - [ ] Publish the Homebrew formula to the `xpepper/homebrew-tap` tap (needs a `HOMEBREW_TAP_TOKEN` repository secret).
+  - [ ] Publish to crates.io from a custom `publish-crates` job using trusted publishing (OIDC, `id-token: write`), not a long-lived token; `cargo publish --dry-run` already runs in CI.
+  - [ ] Document the release steps (tagging, secrets, crates.io trusted-publisher setup) for maintainers.
