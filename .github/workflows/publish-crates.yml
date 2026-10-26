@@ -1,0 +1,55 @@
+# Publishes the crate to crates.io. Called by release.yml as a dist custom
+# publish job (`publish-jobs` in dist-workspace.toml), after the GitHub
+# Release exists, so a failed build never leaves a version on crates.io
+# (crates.io versions cannot be deleted or re-uploaded).
+#
+# Authenticates with crates.io trusted publishing: no long-lived token.
+# crates.io matches the caller workflow (release.yml), not this file.
+name: Publish to crates.io
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      # Makes the job safe to re-run after a partial failure, and tolerates
+      # a version that was already published by hand.
+      - name: Skip if this version is already on crates.io
+        id: check
+        run: |
+          version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            -A 'antigravity-powerline release workflow (github.com/xpepper/antigravity-powerline)' \
+            "https://crates.io/api/v1/crates/antigravity-powerline/$version")
+          echo "crates.io status for $version: $status"
+          if [ "$status" = "200" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Authenticate with crates.io
+        if: steps.check.outputs.published != 'true'
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      - name: Publish
+        if: steps.check.outputs.published != 'true'
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
