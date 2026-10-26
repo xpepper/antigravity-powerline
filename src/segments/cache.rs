@@ -29,10 +29,8 @@ pub fn render_cache_segment(
         return None;
     }
 
-    let hit_pct = ctx
-        .current_usage
-        .as_ref()
-        .and_then(|usage| Step::from(usage).hit_rate())
+    let hit_pct = Step::latest(ctx)
+        .and_then(|step| step.hit_rate())
         .map_or(0, |pct| pct.round() as u64);
 
     // A recent miss is worth showing even on the fully cold Step it came from.

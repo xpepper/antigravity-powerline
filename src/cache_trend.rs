@@ -7,7 +7,7 @@
 //! per-Session snapshot, one Step at a time.
 
 use crate::config::CacheConfig;
-use crate::input::CurrentUsageInfo;
+use crate::input::ContextWindowInfo;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -30,13 +30,19 @@ pub struct Miss {
     pub at: u64,
 }
 
-/// Token counts of one Step, as `current_usage` reports them. Antigravity's
-/// `input_tokens` excludes the tokens read from the cache.
+/// The latest Step: its token counts, as `current_usage` reports them, and
+/// where `context_window` stood after it. Antigravity's `input_tokens`
+/// excludes the tokens read from the cache.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Step {
     pub input_tokens: u64,
     pub cache_read_tokens: u64,
     pub output_tokens: u64,
+    /// Context window fill after the Step.
+    pub total_input_tokens: u64,
+    /// Output summed over the Session, so it grows on every Step that
+    /// writes output and tells apart two Steps with identical counts.
+    pub total_output_tokens: u64,
 }
 
 impl Step {
@@ -48,22 +54,25 @@ impl Step {
     pub fn hit_rate(&self) -> Option<f64> {
         hit_rate(self.cache_read_tokens, self.prompt_tokens())
     }
-}
 
-impl From<&CurrentUsageInfo> for Step {
-    fn from(usage: &CurrentUsageInfo) -> Self {
-        Self {
+    /// The latest Step in `context_window`, `None` until the first model
+    /// response of a Session fills `current_usage`.
+    pub fn latest(context_window: &ContextWindowInfo) -> Option<Self> {
+        let usage = context_window.current_usage.as_ref()?;
+        Some(Self {
             input_tokens: usage.input_tokens.unwrap_or(0),
             cache_read_tokens: usage.cache_read_input_tokens.unwrap_or(0),
             output_tokens: usage.output_tokens.unwrap_or(0),
-        }
+            total_input_tokens: context_window.total_input_tokens.unwrap_or(0),
+            total_output_tokens: context_window.total_output_tokens.unwrap_or(0),
+        })
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Snapshot {
     /// The Step this snapshot last counted. A Refresh reporting the same
-    /// Step again (timer-driven) changes nothing.
+    /// Step again changes nothing.
     pub last_step: Step,
     /// Prompt tokens (input plus cache reads) summed over the Steps seen. A
     /// Step that lands between two Refreshes is never seen, so the Session
@@ -170,6 +179,8 @@ mod tests {
             input_tokens,
             cache_read_tokens,
             output_tokens: 100,
+            total_input_tokens: 0,
+            total_output_tokens: 0,
         }
     }
 
@@ -257,6 +268,30 @@ mod tests {
         assert_eq!(assess_at_now(Some(prev), step(9_000, 1_000)), prev);
     }
 
+    #[test]
+    fn test_step_with_the_same_counts_but_advanced_totals_is_counted() {
+        // Two cold Steps in a row with identical counts: only the Session
+        // totals tell them apart.
+        let first = Step {
+            total_output_tokens: 700,
+            ..step(168_800, 0)
+        };
+        let second = Step {
+            total_output_tokens: 800,
+            ..first
+        };
+        let prev = Snapshot {
+            last_miss: miss(168_800, NOW - 60),
+            ..at_60_pct(first)
+        };
+        let next = assess_at_now(Some(prev), second);
+        assert_eq!(next.last_miss, miss(168_800, NOW));
+        assert_eq!(
+            (next.prompt_tokens, next.cache_read_tokens),
+            (268_800, 60_000)
+        );
+    }
+
     fn miss(tokens: u64, at: u64) -> Option<Miss> {
         Some(Miss { tokens, at })
     }
@@ -339,7 +374,7 @@ mod tests {
                 recent_miss: Some(168_800),
             }
         );
-        // Timer Refresh, nothing new: both stay.
+        // A Refresh reporting the same Step again: both stay.
         assert_eq!(check(step(168_800, 0), NOW + 20), after_miss);
         // A well-cached Step: the arrow flips, the miss stays visible.
         assert_eq!(

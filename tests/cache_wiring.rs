@@ -7,14 +7,37 @@ mod common;
 
 use common::Sandbox;
 
+/// Where `context_window` stands after a Step.
+#[derive(Clone, Copy)]
+struct Totals {
+    input: u64,
+    output: u64,
+}
+
 /// A Refresh payload reporting one Step of the `conv` conversation.
-fn payload(conv: &str, input_tokens: u64, cache_read_tokens: u64) -> String {
+fn payload(conv: &str, input_tokens: u64, cache_read_tokens: u64, totals: Totals) -> String {
+    let Totals { input, output } = totals;
     format!(
-        r#"{{"conversation_id":"{conv}","session_id":"{conv}","context_window":{{"total_input_tokens":200000,"context_window_size":1048576,"current_usage":{{"input_tokens":{input_tokens},"output_tokens":100,"cache_read_input_tokens":{cache_read_tokens}}}}}}}"#
+        r#"{{"conversation_id":"{conv}","session_id":"{conv}","context_window":{{"total_input_tokens":{input},"total_output_tokens":{output},"context_window_size":1048576,"current_usage":{{"input_tokens":{input_tokens},"output_tokens":100,"cache_read_input_tokens":{cache_read_tokens}}}}}}}"#
     )
 }
 
 fn refresh(sandbox: &Sandbox, conv: &str, input_tokens: u64, cache_read_tokens: u64) -> String {
+    let totals = Totals {
+        input: 200_000,
+        output: 0,
+    };
+    refresh_after(sandbox, conv, input_tokens, cache_read_tokens, totals)
+}
+
+/// Like `refresh`, with `context_window` at `totals`.
+fn refresh_after(
+    sandbox: &Sandbox,
+    conv: &str,
+    input_tokens: u64,
+    cache_read_tokens: u64,
+    totals: Totals,
+) -> String {
     let args = [
         "--style",
         "plain",
@@ -23,7 +46,8 @@ fn refresh(sandbox: &Sandbox, conv: &str, input_tokens: u64, cache_read_tokens: 
         "--theme",
         "plain",
     ];
-    let output = sandbox.refresh(&payload(conv, input_tokens, cache_read_tokens), &args);
+    let payload = payload(conv, input_tokens, cache_read_tokens, totals);
+    let output = sandbox.refresh(&payload, &args);
     output
         .split("  |  ")
         .find(|segment| segment.starts_with("Cache:"))
@@ -51,12 +75,47 @@ fn test_cache_miss_stays_visible_after_the_next_step() {
 }
 
 #[test]
-fn test_timer_refresh_keeps_the_arrow() {
+fn test_refresh_reporting_the_same_step_keeps_the_arrow() {
     let sandbox = Sandbox::new();
     refresh(&sandbox, "conv-a", 9_000, 40_000);
     refresh(&sandbox, "conv-a", 9_000, 1_000);
 
     assert_eq!(refresh(&sandbox, "conv-a", 9_000, 1_000), "Cache: 10% ↓");
+}
+
+/// A fully cached Step, two cold Steps with identical counts, then a Step at
+/// 40%, each reported at the next of `totals`. Counting both cold Steps takes
+/// the Session average from 100% to 33%, rather than to 50% if the second were
+/// taken for a repeat, so the last Step trends up rather than down.
+fn replay_identical_cold_steps(sandbox: &Sandbox, totals: [Totals; 4]) -> String {
+    let [warm, cold, cold_again, next] = totals;
+    refresh_after(sandbox, "conv-a", 0, 100_000, warm);
+    refresh_after(sandbox, "conv-a", 100_000, 0, cold);
+    refresh_after(sandbox, "conv-a", 100_000, 0, cold_again);
+    refresh_after(sandbox, "conv-a", 6_000, 4_000, next)
+}
+
+#[test]
+fn test_identical_steps_both_count_when_the_output_total_advances() {
+    let totals = [100, 200, 300, 400].map(|output| Totals {
+        input: 200_000,
+        output,
+    });
+
+    assert_eq!(
+        replay_identical_cold_steps(&Sandbox::new(), totals),
+        "Cache: 40% ↑ · miss 100k"
+    );
+}
+
+#[test]
+fn test_identical_steps_both_count_when_only_the_input_total_advances() {
+    let totals = [100_000, 200_000, 300_000, 400_000].map(|input| Totals { input, output: 100 });
+
+    assert_eq!(
+        replay_identical_cold_steps(&Sandbox::new(), totals),
+        "Cache: 40% ↑ · miss 100k"
+    );
 }
 
 #[test]

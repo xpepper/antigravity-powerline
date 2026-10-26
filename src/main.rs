@@ -108,14 +108,13 @@ fn main() {
         None
     };
 
-    // `current_usage` is null until the first model response of a Session.
     let cache_signals = if cache::needs_snapshot(&config.segments, &config.cache)
         && let Some(id) = input.session_key()
-        && let Some(usage) = input.context_window.current_usage.as_ref()
+        && let Some(step) = cache_trend::Step::latest(&input.context_window)
     {
         cache_trend::check(
             &cache_trend::snapshot_path(id),
-            usage.into(),
+            step,
             github::current_timestamp(),
             &config.cache,
         )
