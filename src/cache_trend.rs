@@ -30,16 +30,18 @@ pub struct Miss {
     pub at: u64,
 }
 
-/// Token counts of one Step, as `current_usage` reports them. Antigravity's
-/// `input_tokens` excludes the tokens read from the cache.
+/// The latest Step: its token counts, as `current_usage` reports them, and
+/// where `context_window` stood after it. Antigravity's `input_tokens`
+/// excludes the tokens read from the cache.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Step {
     pub input_tokens: u64,
     pub cache_read_tokens: u64,
     pub output_tokens: u64,
-    /// Session totals after the Step. They advance on every Step, so they
-    /// tell apart two Steps with identical counts.
+    /// Context window fill after the Step.
     pub total_input_tokens: u64,
+    /// Output summed over the Session, so it grows on every Step that
+    /// writes output and tells apart two Steps with identical counts.
     pub total_output_tokens: u64,
 }
 
@@ -52,9 +54,7 @@ impl Step {
     pub fn hit_rate(&self) -> Option<f64> {
         hit_rate(self.cache_read_tokens, self.prompt_tokens())
     }
-}
 
-impl Step {
     /// The latest Step in `context_window`, `None` until the first model
     /// response of a Session fills `current_usage`.
     pub fn latest(context_window: &ContextWindowInfo) -> Option<Self> {

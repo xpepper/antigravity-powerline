@@ -24,6 +24,7 @@ fn refresh(sandbox: &Sandbox, conv: &str, input_tokens: u64, cache_read_tokens: 
     refresh_after(sandbox, conv, input_tokens, cache_read_tokens, 0)
 }
 
+/// Like `refresh`, with the Session at `total_output_tokens` output tokens.
 fn refresh_after(
     sandbox: &Sandbox,
     conv: &str,
