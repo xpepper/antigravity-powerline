@@ -7,7 +7,9 @@ if (( status > 1 )); then
   exit "$status"
 fi
 
-if [[ -n "$matches" ]]; then
-  printf 'Machine-specific paths are not allowed in tracked files:\n%s\n' "$matches" >&2
+# dist generates this fixed runner path; the rest of the workflow is still checked.
+violations="$(printf '%s\n' "$matches" | sed -E '/^\.github\/workflows\/release\.yml:[0-9]+:[[:space:]]+export PATH="\/home\/linuxbrew\/\.linuxbrew\/bin:[$]PATH"$/d')"
+if [[ -n "$violations" ]]; then
+  printf 'Machine-specific paths are not allowed in tracked files:\n%s\n' "$violations" >&2
   exit 1
 fi

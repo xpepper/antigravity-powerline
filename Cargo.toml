@@ -5,6 +5,7 @@ edition = "2024"
 description = "A fast, customizable powerline status line for Google Antigravity CLI"
 license = "MIT"
 repository = "https://github.com/xpepper/antigravity-powerline"
+homepage = "https://github.com/xpepper/antigravity-powerline"
 readme = "README.md"
 keywords = ["antigravity", "gemini", "statusline", "powerline", "cli"]
 categories = ["command-line-utilities"]
@@ -25,3 +26,7 @@ lto = true
 codegen-units = 1
 panic = "abort"
 strip = true
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"

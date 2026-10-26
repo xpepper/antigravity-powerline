@@ -89,3 +89,7 @@
   - [ ] Publish the Homebrew formula to the `xpepper/homebrew-tap` tap (needs a `HOMEBREW_TAP_TOKEN` repository secret).
   - [ ] Publish to crates.io from a custom `publish-crates` job using trusted publishing (OIDC, `id-token: write`), not a long-lived token; `cargo publish --dry-run` already runs in CI.
   - [ ] Document the release steps (tagging, secrets, crates.io trusted-publisher setup) for maintainers.
+  - *Decisions (2026-10-26)*: first automated release is `0.3.0` (features since the hand-published `0.2.1`); versions stay chosen by hand, with a written SemVer policy in `RELEASING.md`; `v0.2.0` / `v0.2.1` tags backfilled on the commits published to crates.io. Two PRs: (1) dist pipeline and docs, (2) `scripts/release.sh` with `tests/test-release.sh`.
+  - [ ] Port `scripts/release.sh` (`prepare X.Y.Z`, `tag`, `--dry-run`) with its mocked test suite, run from the CI `ShellCheck` job.
+  - [ ] Maintainer setup: `HOMEBREW_TAP_TOKEN` repository secret, crates.io trusted publisher (`xpepper` / `antigravity-powerline` / `release.yml`).
+  - [ ] Cut `0.3.0` with the script and verify every channel (GitHub Release, installer, Homebrew, crates.io, `cargo binstall`).
