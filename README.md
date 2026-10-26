@@ -57,21 +57,27 @@ Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline),
 
 ## Quick Start
 
-### 1. Build and Install
+### 1. Install
+
+Install a prebuilt binary (macOS and Linux, no Rust toolchain needed):
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/xpepper/antigravity-powerline/releases/latest/download/antigravity-powerline-installer.sh | sh
+```
+
+Or with Homebrew:
+
+```bash
+brew install xpepper/tap/antigravity-powerline
+```
+
+Or install from crates.io:
 
 ```bash
 cargo install antigravity-powerline
 ```
 
-Or install from source:
-
-```bash
-git clone https://github.com/xpepper/antigravity-powerline.git
-cd antigravity-powerline
-cargo install --path .
-```
-
-This installs `antigravity-powerline` to `~/.cargo/bin/antigravity-powerline`.
+See [Installation and compatibility](#installation-and-compatibility) for other options.
 
 ### 2. Generate Default Configuration
 
@@ -95,7 +101,51 @@ Update `statusLine` in `~/.gemini/antigravity-cli/settings.json`:
 }
 ```
 
-*(If `~/.cargo/bin` is not in your default system `PATH`, specify `~/.cargo/bin/antigravity-powerline`)*.
+If the install directory is not on your `PATH`, use the full path as the command: `~/.local/bin/antigravity-powerline` for the installer, or `~/.cargo/bin/antigravity-powerline` for Cargo.
+
+---
+
+## Installation and compatibility
+
+### Prebuilt binaries
+
+Each [GitHub Release](https://github.com/xpepper/antigravity-powerline/releases) ships binaries for macOS (Apple Silicon and Intel) and Linux (x86_64 and arm64, glibc 2.39 or newer), with SHA-256 checksums. The shell installer from the [quick start](#1-install) picks the right one and installs it to `~/.local/bin`, adding that directory to your `PATH` if needed.
+
+Homebrew (macOS or Linux) installs the same binaries from the [xpepper/homebrew-tap](https://github.com/xpepper/homebrew-tap) tap.
+
+If you use [cargo-binstall](https://github.com/cargo-bins/cargo-binstall), it downloads the same binaries instead of compiling:
+
+```bash
+cargo binstall antigravity-powerline
+```
+
+If you manage tools with [mise](https://mise.jdx.dev/), install the release binary directly from GitHub:
+
+```bash
+mise use -g github:xpepper/antigravity-powerline
+```
+
+For the status-line command, use the real binary path printed by `mise which antigravity-powerline` rather than the mise shim: the shim starts `mise` on every refresh, roughly doubling run time. That path includes the version, so update `~/.gemini/antigravity-cli/settings.json` after upgrading.
+
+### Install with Cargo
+
+`cargo install antigravity-powerline` compiles the crate from crates.io. It requires a current stable Rust toolchain with Cargo.
+
+However you install it, the executable runs locally during status-line refreshes and never makes network requests itself. The only exception is the optional `pr` segment, which runs `gh` in a detached background process, never inline in the refresh.
+
+### Verified environments
+
+CI tests on GitHub Actions' current macOS and Ubuntu runner images, and the release workflow builds the prebuilt binaries there. Windows is not verified in CI and has no prebuilt binary; use `cargo install` there at your own risk.
+
+### Build from source
+
+For local development or unreleased changes:
+
+```bash
+git clone https://github.com/xpepper/antigravity-powerline.git
+cd antigravity-powerline
+cargo install --path .
+```
 
 ---
 
@@ -214,7 +264,7 @@ Options:
 
 ## Contributing
 
-Pull requests are welcome! The `main` branch is protected: every change goes through a PR, and CI runs `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` on each one. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+Pull requests are welcome! The `main` branch is protected: every change goes through a PR, and CI runs `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` on each one. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started. Maintainers publish new versions following [RELEASING.md](RELEASING.md).
 
 ---
 

@@ -53,6 +53,10 @@ Maintainers review pull requests with the [gem-pr-review](https://github.com/xpe
 
 You do not need the plugin to contribute. The file is plain Markdown, so read it as a short checklist before opening a pull request; the CI checks above are the merge bar either way.
 
+## Releases
+
+Maintainers should follow [RELEASING.md](RELEASING.md) when publishing a new version.
+
 ## Reporting issues
 
 Use the bug-report template for reproducible problems and the feature-request template for proposals. Include only information needed to investigate; do not attach session data, credentials, or other sensitive information.
