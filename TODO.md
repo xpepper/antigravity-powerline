@@ -84,12 +84,12 @@
 
 - [ ] **10. Build & Release Pipeline (multi-platform binaries, crates.io, Homebrew)**
   - *Reference*: `../copilot-powerline/dist-workspace.toml`, `../copilot-powerline/.github/workflows/release.yml`, `../copilot-powerline/.github/workflows/publish-crates.yml`, `[profile.dist]` in `../copilot-powerline/Cargo.toml`
-  - [ ] Set up `cargo-dist` (same version as `copilot-powerline`) with `shell` and `homebrew` installers, triggered by pushing a version tag.
-  - [ ] Build release binaries for `aarch64-apple-darwin`, `x86_64-apple-darwin`, `aarch64-unknown-linux-gnu` and `x86_64-unknown-linux-gnu`, on non-deprecated `ubuntu-24.04` / `ubuntu-24.04-arm` runners, and attach them to a GitHub Release.
-  - [ ] Publish the Homebrew formula to the `xpepper/homebrew-tap` tap (needs a `HOMEBREW_TAP_TOKEN` repository secret).
-  - [ ] Publish to crates.io from a custom `publish-crates` job using trusted publishing (OIDC, `id-token: write`), not a long-lived token; `cargo publish --dry-run` already runs in CI.
-  - [ ] Document the release steps (tagging, secrets, crates.io trusted-publisher setup) for maintainers.
+  - [x] Set up `cargo-dist` (same version as `copilot-powerline`) with `shell` and `homebrew` installers, triggered by pushing a version tag.
+  - [x] Build release binaries for `aarch64-apple-darwin`, `x86_64-apple-darwin`, `aarch64-unknown-linux-gnu` and `x86_64-unknown-linux-gnu`, on non-deprecated `ubuntu-24.04` / `ubuntu-24.04-arm` runners, and attach them to a GitHub Release.
+  - [x] Publish the Homebrew formula to the `xpepper/homebrew-tap` tap (needs a `HOMEBREW_TAP_TOKEN` repository secret).
+  - [x] Publish to crates.io from a custom `publish-crates` job using trusted publishing (OIDC, `id-token: write`), not a long-lived token; `cargo publish --dry-run` already runs in CI.
+  - [x] Document the release steps (tagging, secrets, crates.io trusted-publisher setup) for maintainers.
   - *Decisions (2026-10-26)*: first automated release is `0.3.0` (features since the hand-published `0.2.1`); versions stay chosen by hand, with a written SemVer policy in `RELEASING.md`; `v0.2.0` / `v0.2.1` tags backfilled on the commits published to crates.io. Two PRs: (1) dist pipeline and docs, (2) `scripts/release.sh` with `tests/test-release.sh`.
-  - [ ] Port `scripts/release.sh` (`prepare X.Y.Z`, `tag`, `--dry-run`) with its mocked test suite, run from the CI `ShellCheck` job.
+  - [x] Port `scripts/release.sh` (`prepare X.Y.Z`, `tag`, `--dry-run`) with its mocked test suite, run from the CI `ShellCheck` job.
   - [ ] Maintainer setup: `HOMEBREW_TAP_TOKEN` repository secret, crates.io trusted publisher (`xpepper` / `antigravity-powerline` / `release.yml`).
   - [ ] Cut `0.3.0` with the script and verify every channel (GitHub Release, installer, Homebrew, crates.io, `cargo binstall`).

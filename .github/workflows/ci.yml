@@ -82,6 +82,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      # release.sh pushes a tag that cannot be undone, so lint it before it runs.
       - name: Lint shell scripts
         run: shellcheck scripts/* tests/*.sh
 
@@ -97,7 +98,11 @@ jobs:
       - name: Test mutants-diff script
         run: bash tests/test-mutants-diff.sh
 
-  # Catch crates.io packaging problems before tagging a release.
+      - name: Test release script
+        run: bash tests/test-release.sh
+
+  # The release workflow publishes to crates.io, and a crates.io version
+  # cannot be re-uploaded, so catch packaging problems before tagging.
   package:
     name: Package
     runs-on: ubuntu-latest
