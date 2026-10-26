@@ -9,7 +9,7 @@ Welcome! This document provides architecture overviews, design constraints, and 
 `antigravity-powerline` is a fast, modular, and customizable status line tool for Google Antigravity CLI (`agy`) written in Rust. See [`src/main.rs`](src/main.rs) for the Refresh pipeline and [`src/state.rs`](src/state.rs) for private cross-Refresh state storage and daily pruning.
 
 ### Sibling Reference Repository (`copilot-powerline`)
-`antigravity-powerline` tracks the architecture, engineering conventions, and applicable features of [`xpepper/copilot-powerline`](https://github.com/xpepper/copilot-powerline) (typically cloned alongside this repo in `../copilot-powerline`). When porting features or patterns (such as `src/state.rs`, `src/github.rs`, `src/segments/pr.rs`, `src/cache_trend.rs`, `src/idle.rs`, `src/mode.rs`), consult `copilot-powerline` for the reference implementation and test coverage, and see [`TODO.md`](TODO.md) for the prioritized 5-phase roadmap.
+`antigravity-powerline` tracks the architecture, engineering conventions, and applicable features of [`xpepper/copilot-powerline`](https://github.com/xpepper/copilot-powerline) (typically cloned alongside this repo in `../copilot-powerline`). When porting features or patterns (such as `src/state.rs`, `src/github.rs`, `src/segments/pr.rs`, `src/cache_trend.rs`, `src/idle.rs`, `src/mode.rs`), consult `copilot-powerline` for the reference implementation and test coverage, and see [GitHub Issues](https://github.com/xpepper/antigravity-powerline/issues) for open work ([`TODO.md`](TODO.md) keeps the completed roadmap).
 
 ---
 
