@@ -45,7 +45,7 @@ Inspired by [`copilot-powerline`](https://github.com/xpepper/copilot-powerline),
 - 🔀 **GitHub Pull Request Detection**: Displays clickable terminal hyperlink to the active branch's pull request (e.g., `PR #29`) via `gh`, cached with background refresh. Stays off automatically when `gh` is unavailable.
 - 🎯 **Context Window Monitoring**: Real-time context token usage vs model capacity, percentage used, and alert threshold warnings (`⚠️ `).
 - ⏳ **Quota & Rate Limit Monitoring**: Displays remaining 5-hour and weekly quota fractions (e.g. `5h: 96%`, `wk: 88%`), color-coded by capacity, plus the time left before the 5-hour window resets (e.g. `5h: 24% (2h 36m)`).
-- ⚡ **Prompt Cache Hit Rate, Trend & Misses**: Shows the latest Step's (model call's) cache hit rate, an arrow (`↑`/`↓`) when it is clearly above or below the session average, and a large cache miss (`· miss 169k`) for five minutes after it happens.
+- ⚡ **Prompt Cache Hit Rate, Trend & Misses**: Shows the latest Step's cache hit rate, an arrow (`↑`/`↓`) when it is clearly above or below the session average, and a large cache miss (`· miss 169k`) for five minutes after it happens.
 - 📊 **Total Session Tokens**: Displays cumulative turn throughput across the entire interactive session.
 - 📦 **Artifacts Counter**: Displays number of generated artifacts in the current workspace.
 - 🎨 **Multiple Styles**: Choose from `minimal`, `powerline`, `capsule`, or `plain`.
