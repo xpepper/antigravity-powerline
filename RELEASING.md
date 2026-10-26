@@ -12,6 +12,22 @@ On each release the workflow pushes an updated formula to the tap. This needs a 
 
 The workflow then publishes the crate to crates.io (`.github/workflows/publish-crates.yml`, a dist custom publish job). It runs only after the GitHub Release exists, because a crates.io version cannot be deleted or re-uploaded. It authenticates with [crates.io trusted publishing](https://crates.io/docs/trusted-publishing), so there is no token secret. The one-time setup is in the crate's settings on crates.io, under Trusted Publishing, with repository owner `xpepper`, repository `antigravity-powerline`, and workflow `release.yml`. crates.io checks the calling workflow, not `publish-crates.yml`.
 
+## Shortcut: `scripts/release.sh`
+
+The steps below are automated by two commands. Merging the version-bump PR stays manual, as the review point. Pass `--dry-run` (or `-n`) to preview the planned commands without modifying state.
+
+```bash
+# Optional preview:
+scripts/release.sh --dry-run prepare 0.3.0
+
+scripts/release.sh prepare 0.3.0   # bump, run the checks, open the bump PR
+# review and merge the PR, then:
+scripts/release.sh --dry-run tag   # optional preview
+scripts/release.sh tag             # tag main, watch the run, verify crates.io, append notes
+```
+
+The script does not choose the version: pick it with the policy below. The manual steps follow, for when the script cannot be used.
+
 ## Choose the version
 
 Versions follow [Semantic Versioning](https://semver.org/). The crate is a binary, so its public interface is what users script and configure against:

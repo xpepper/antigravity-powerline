@@ -61,7 +61,7 @@ On pull requests, CI's `Mutants` job runs the same script. It is advisory, not a
 ## 5. Commits and Releases
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat`, `fix`, `perf`, `test`, `refactor`, `style`, `build`, `ci`, `docs`, `chore`).
-- Releases: follow [`RELEASING.md`](RELEASING.md), which also defines how to pick the SemVer bump. Never run `cargo publish` by hand: CI publishes to crates.io after the GitHub Release exists, and a crates.io version cannot be deleted or re-uploaded.
+- Releases: run `scripts/release.sh` (see [`RELEASING.md`](RELEASING.md), which also defines how to pick the SemVer bump). Never run `cargo publish` by hand: CI publishes to crates.io after the GitHub Release exists, and a crates.io version cannot be deleted or re-uploaded.
 
 ---
 
