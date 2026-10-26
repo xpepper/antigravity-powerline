@@ -51,12 +51,13 @@
   - [x] Show `↑` / `↓` on `cache` segment when the latest Step's cache hit rate diverges from the Session average by more than 5 points.
   - [x] Show `· miss <tokens>` for `miss_visible_seconds` (default 300s) after a Step with `>= 50k` uncached input tokens, even when `hide_when_zero` would hide a fully cold Step.
   - [x] Add `tests/cache_wiring.rs` to cover `main()` wiring for `cache` (`cache_expiry` is covered with item 6).
-  - [ ] Follow-up: capture one live status line payload to confirm `current_usage` mirrors the per-Step `gen_metadata` counts (inferred from the docs example and local data, not yet observed directly).
-  - [ ] Follow-up: two consecutive Steps with identical input, cache-read and output counts are deduplicated as one timer-driven Refresh, so the second is not counted and its Cache Miss does not renew. Once a live payload is captured, check whether `context_window.total_input_tokens` / `total_output_tokens` advance once per Step; if so, add them to the deduplication key. Raised in PR #6 review.
+  - [x] Follow-up: capture one live status line payload to confirm `current_usage` mirrors the per-Step `gen_metadata` counts. Confirmed on 2026-10-26 (agy 1.4.7): all 9 Steps of a captured conversation matched `gen_metadata` exactly (input, output, cache read). `total_input_tokens` is the context window fill (`gen_metadata` 9.10.1), not a sum of Step inputs.
+  - [ ] Follow-up: two consecutive Steps with identical input, cache-read and output counts are deduplicated as one repeated Refresh, so the second is not counted and its Cache Miss does not renew. The live capture showed `total_output_tokens` is the running sum of Step outputs and `total_input_tokens` changed on every Step, so add both to the deduplication key. Also drop "timer" from the `src/cache_trend.rs` comments and `test_timer_refresh_keeps_the_arrow` (there is no timer, see Refresh in `GLOSSARY.md`). Raised in PR #6 review.
   - [ ] Follow-up (review judgement call, not done): the clock comes from `github::current_timestamp` (house style shared with `copilot-powerline`).
 
 - [ ] **6. Long-Break / Cold Cache Reminder (`cache_expiry` segment)**
   - *Reference*: `../copilot-powerline/src/idle.rs`, `../copilot-powerline/src/segments/cache_expiry.rs`
+  - *Live capture (2026-10-26, agy 1.4.7)*: Antigravity CLI has no refresh timer (no Refresh during 327s idle), unlike Copilot CLI's `refreshInterval` that `idle.rs` relies on. One Refresh arrives when the user starts typing into an empty prompt (inferred from timing, not documented), so the reminder cannot count up on screen but shows as the user starts the next prompt. `session_id` was always empty, so key the idle snapshot by `conversation_id` like `cache_trend`; `total_output_tokens` grows on every Step and can serve as the "a Step happened" counter.
   - [ ] Port `src/idle.rs` and `src/segments/cache_expiry.rs` (`Idle: 30m · cache likely cold`).
   - [ ] Track idle time per session across refreshes; hide below `min_tokens` (50k) or `idle_seconds` (1800s).
 
