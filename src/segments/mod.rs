@@ -1,5 +1,6 @@
 pub mod artifacts;
 pub mod cache;
+pub mod cache_expiry;
 pub mod git;
 pub mod model;
 pub mod pr;

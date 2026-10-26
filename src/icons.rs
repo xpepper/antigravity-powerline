@@ -73,6 +73,17 @@ pub fn cache_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     }
 }
 
+pub fn cache_expiry_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
+    if let Some(c) = custom {
+        return c;
+    }
+    match icon_set {
+        IconSet::Plain => "Idle:",
+        IconSet::Nerd => "\u{f051f}", // nf-md-timer_sand
+        IconSet::Emoji => "💤",
+    }
+}
+
 pub fn total_tokens_icon(icon_set: IconSet, custom: Option<&str>) -> &str {
     if let Some(c) = custom {
         return c;
@@ -117,6 +128,7 @@ mod tests {
         assert_eq!(tokens_icon(IconSet::Plain, None), "Tokens:");
         assert_eq!(quota_icon(IconSet::Plain, None), "Quota:");
         assert_eq!(cache_icon(IconSet::Plain, None), "Cache:");
+        assert_eq!(cache_expiry_icon(IconSet::Plain, None), "Idle:");
         assert_eq!(total_tokens_icon(IconSet::Plain, None), "Total:");
         assert_eq!(artifacts_icon(IconSet::Plain, None), "Artifacts:");
         assert_eq!(pr_icon(IconSet::Plain, None), "PR");
@@ -128,6 +140,7 @@ mod tests {
         assert_eq!(git_icon(IconSet::Nerd, None), "󰘬");
         assert_eq!(tokens_icon(IconSet::Nerd, None), "󰮚");
         assert_eq!(quota_icon(IconSet::Nerd, None), "󰔛");
+        assert_eq!(cache_expiry_icon(IconSet::Nerd, None), "󰔟");
         assert_eq!(pr_icon(IconSet::Nerd, None), "");
     }
 
@@ -136,6 +149,7 @@ mod tests {
         assert_eq!(model_icon(IconSet::Emoji, None), "🤖");
         assert_eq!(git_icon(IconSet::Emoji, None), "🌿");
         assert_eq!(cache_icon(IconSet::Emoji, None), "⚡");
+        assert_eq!(cache_expiry_icon(IconSet::Emoji, None), "💤");
         assert_eq!(pr_icon(IconSet::Emoji, None), "🔀");
     }
 
@@ -144,5 +158,6 @@ mod tests {
         assert_eq!(tokens_icon(IconSet::Plain, Some("Ctx:")), "Ctx:");
         assert_eq!(model_icon(IconSet::Nerd, Some("MDL")), "MDL");
         assert_eq!(pr_icon(IconSet::Plain, Some("Pull:")), "Pull:");
+        assert_eq!(cache_expiry_icon(IconSet::Emoji, Some("Away:")), "Away:");
     }
 }
